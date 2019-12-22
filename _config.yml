@@ -101,3 +101,9 @@ deploy:
   type: git
   repo: https://github.com/330129161/330129161.github.io.git
   branch: master
+  
+admin:
+  username: 330129161
+  password_hash: $2a$10$vlOrV7Ne5nf7.WBW/3nMa.OQ3FZ9pcuLWZJ6G3ixEZmrxkN4cQG4C
+  secret: yingu
+  deployCommand: 'hexo-publish.bat'
