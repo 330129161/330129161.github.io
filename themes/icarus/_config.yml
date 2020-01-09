@@ -56,7 +56,7 @@ article:
     highlight:
         # Code highlight themes
         # https://github.com/highlightjs/highlight.js/tree/master/src/styles
-        theme: atom-one-light
+        theme: atom-one-dark
         # Show code copying button
         clipboard: true
         # Default folding status of the code blocks. Can be "", "folded", "unfolded"
