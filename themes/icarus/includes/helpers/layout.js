@@ -22,7 +22,20 @@ module.exports = function (hexo) {
             return [];
         }
         const widgets = hexo.extend.helper.get('get_config').bind(this)('widgets');
-        return widgets.filter(widget => widget.hasOwnProperty('position') && widget.position === position);
+        //替换双栏
+        //return widgets.filter(widget => widget.hasOwnProperty('position') && widget.position === position);
+        if (this.page.layout !== 'post') {
+            return widgets.filter(widget => widget.hasOwnProperty('position') && widget.position === position);
+        }
+        if (position === 'left') {
+            //左侧全部显示
+            return widgets.filter(widget => widget.hasOwnProperty('position'));
+            //只显示目录和个人信息
+            /*return widgets.filter(widget => widget.hasOwnProperty('position') && ((widget.type === 'toc')
+            || (widget.type === 'profile')));*/
+        } else {
+            return []
+        }
     });
 
     hexo.extend.helper.register('has_column', function (position) {

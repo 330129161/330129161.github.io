@@ -7,7 +7,7 @@ meta:
 # canonical_url of your site
 canonical_url: 
 # Path or URL to RSS atom.xml
-rss: 
+rss: /atom.xml
 # Path or URL to the website's logo to be shown on the left of the navigation bar or footer
 logo: /images/logo.png
 # Open Graph metadata
@@ -74,7 +74,7 @@ search:
 # https://ppoffice.github.io/hexo-theme-icarus/categories/Plugins/Comment
 comment:
     type: gitalk
-    owner: 330129161
+    owner: '330129161'
     admin: ['330129161']
     repo: gitalk-commnet
     id: window.location.pathname
@@ -159,21 +159,22 @@ widgets:
             #Dribbble:
                 #icon: fab fa-dribbble
                 #url: 'https://dribbble.com'
-            #RSS:
-                #icon: fas fa-rss
-                #url: /
+            RSS:
+                icon: fas fa-rss
+                url: /atom.xml
     -
         # Widget name
         type: toc
         # Where should the widget be placed, left or right
         position: left
-    #-
+    -
         # Widget name
-        # type: links
+        type: links
         # Where should the widget be placed, left or right
-        #position: left
+        position: left
         # Links to be shown in the links widget
-        # links:
+        links:
+            Arnold: 'https://www.bestarnold.com/'
             #Hexo: 'https://hexo.io'
             #PPOffice: 'https://github.com/ppoffice'
     -
@@ -235,7 +236,7 @@ plugins:
     progressbar: true
     # BuSuanZi site/page view counter
     # https://busuanzi.ibruce.info
-    busuanzi: false
+    busuanzi: true
 # CDN provider settings
 # https://ppoffice.github.io/hexo-theme-icarus/Configuration/Theme/speed-up-your-site-with-custom-cdn/
 providers:
@@ -245,10 +246,6 @@ providers:
     fontcdn: google
     # Name or URL of the webfont Icon CDN provider
     iconcdn: fontawesome
-    
-    
 
-post_copyright:
-  enable: true 
-  author: yingu 
-  copyright_text: 作者拥有版权，请注明出处转载
+
+    

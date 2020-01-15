@@ -6,7 +6,8 @@
                 <% if (logo && logo.text) { %>
                     <%= logo.text %>
                 <% } else { %>
-                    <img src="<%- url_for(logo) %>" alt="<%= title %>" height="28">
+                    <br>
+                    <img src="<%- url_for(logo) %>" alt="<%= title %>" height="20">
                 <% } %>
                 </a>
                 <p class="is-size-7">
@@ -17,6 +18,9 @@
                 <br>
                 <span id="busuanzi_container_site_uv">
                 <%- _p('plugin.visitor', '<span id="busuanzi_value_site_uv">0</span>') %>
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <%- _p('plugin.visit', '<span id="busuanzi_value_site_pv">0</span>') %>
                 </span>
                 <% } %>
                 </p>

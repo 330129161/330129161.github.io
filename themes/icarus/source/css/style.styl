@@ -1,16 +1,21 @@
 family-sans = "Ubuntu", "Roboto", "Open Sans", "Microsoft YaHei", sans-serif
 family-mono = "Source Code Pro", monospace, "Microsoft YaHei"
+/*gap = 64px
+screen-tablet = 769px
+screen-desktop = 1088px
+screen-widescreen = 1780px
+screen-fullhd = 1928px*/
 gap = 64px
 screen-tablet = 769px
 screen-desktop = 1088px
 screen-widescreen = 1280px
 screen-fullhd = 1472px
-
+ 
 /* ---------------------------------
  *       Override CSS Framework
  * --------------------------------- */
 html
-    font-size: 14px
+    font-size: 15px
 
 body
     background-color: #f7f7f7
@@ -23,6 +28,9 @@ body, button, input, select, textarea
     .is-2-column .container
         max-width: screen-desktop - 2 * gap
         width: screen-desktop - 2 * gap
+    .is-3-column .container
+        max-width: screen-widescreen - gap
+        width: screen-widescreen - gap
 @media screen and (min-width: screen-fullhd)
     .is-2-column .container
         max-width: screen-widescreen - 2 * gap
@@ -30,6 +38,9 @@ body, button, input, select, textarea
     .is-1-column .container
         max-width: screen-desktop - 2 * gap
         width: screen-desktop - 2 * gap
+    .is-3-column .container
+        max-width: screen-fullhd - 2 * gap
+        width: screen-fullhd - 2 * gap
 
 @media screen and (max-width: screen-tablet - 1)
     .section
@@ -184,6 +195,9 @@ img.thumbnail
             position: relative
         a
             word-wrap: break-word
+            img
+                margin: auto
+                display: block
 
 .rtl
      direction: rtl
@@ -477,3 +491,13 @@ figure.highlight
             border: none
     .file
         all: initial
+
+
+.post-copyright
+    font-size: 1rem
+    letter-spacing: 0.02rem
+    word-break: break-all
+    margin: 2.5rem 0 0
+    padding: 1rem 1rem
+    border-left: 3px solid #FF1700
+    background-color: #F9F9F9
