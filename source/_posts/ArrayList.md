@@ -124,9 +124,12 @@ public boolean add(E e) {
 public void add(int index, E element) {
     //校验位置是否在数组范围内
     rangeCheckForAdd(index);
-    //同<1>
+    //同<1>处
     ensureCapacityInternal(size + 1);  // Increments modCount!!
-    //<2>.将数组elementData从下标index开始的元素，长度为size - index（即index到size之间的元素）复制到数组elementData以index+1开始的位置，再将element放在数组index的位置。
+    /**
+    * <2>.将数组elementData从下标index开始的元素，长度为size - index（即index到size之间的元素）复制
+    * 到数组elementData以index+1开始的位置，再将element放在数组index的位置。
+    */
     System.arraycopy(elementData, index, elementData, index + 1,
                      size - index);
     elementData[index] = element;
