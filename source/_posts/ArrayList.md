@@ -23,17 +23,17 @@ date: 2019-12-25 20:41:00
 
 ## 概述
 
- ArrayList是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。Arraylist在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。
+ `ArrayList`是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。`Arraylist`在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。
 
 ## 结构特点
 
-1.  `ArrayList` 继承了`AbstractList`，实现了`List`。它是一个数组队列，提供了相关的添加、删除、修改、遍历等功能。
+1.  `ArrayList` 继承了`AbstractList`，实现了`List`。提供了相关的添加、删除、修改、遍历等功能。
 2.  实现了`RandmoAccess`接口，即提供了随机访问功能 ， 这样`ArrayList`使用`for`循环遍历元素要比使用迭代器遍历元素要快 。
 3.  实现了`Cloneable`接口， 表示 `ArrayList` 支持克隆。
 4. 实现了 `Serializable` 接口， 表示 `ArrayList` 支持序列化的功能 ，可用于网络传输。
 5. `ArrayList`非线程安全，因此只适用于单线程中。如果在多线程，可使用 `CopyOnWriteArrayList`和`Vector`。 `Vector`方法和`ArrayList`基本相同，不过在修改方法上，都使用`synchronized`修饰。 而`CopyOnWriteArrayList` 采用写时拷贝策略，对其进行修改操作和元素迭代，都是在低层创建一个拷贝数组上进行，兼顾了线程安全的同时，又提高了并发性，性能比`Vector`有不少提高 。因此，**多线程情况下推荐使用`CopyOnWriteArrayList`**。
 
-![结构](http://q3ti54das.bkt.clouddn.com/static/20200109/uIs3Bzu9Fq1t.png?imageslim)
+![ArrayList结构](http://q3ti54das.bkt.clouddn.com/static/20200109/uIs3Bzu9Fq1t.png?imageslim)
 
 ## 重要属性
 
@@ -730,5 +730,5 @@ public void remove() {
 
 
 
-ArrayLIst的源码分析到这里就结束了！🎉🎉撒花。如果各位小伙伴读完后，发现文章中有哪些错误或者不足之后，烦请各位在评论区告知笔者，将不胜感激！
+ArrayLIst的源码分析到这里就结束了！🎉🎉撒花。如果各位小伙伴读完后，发现文章中有哪些错误或者不足之处，烦请各位在评论区告知笔者，将不胜感激！
 

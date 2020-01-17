@@ -22,11 +22,18 @@ date: 2019-12-28 20:41:00
 
 ## 概述
 
+本章我们进行`LinkedList`的分析，同上篇介绍的[ArrayList](https://www.yingu.site/2019/12/25/ArrayList/)一样，`LinkedList`也是`List`的实现类。不过`ArrayList`是基于数组实现的，而`LinkedList`是基于链表实现的。由于`LinkedList`基于链表实现，所以`LinkedList`比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，`LinkedList`则没那么容易。与`ArrayList`不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。`LinkedList`需要通过遍历列表的方式来匹配元素，因此效率比较低。
+
 ## 结构特点
 
-![mark](http://q3ti54das.bkt.clouddn.com/static/20200115/gIyTu6uWBVSb.png?imageslim)
+1. `LinkedList`继承了`AbstractList`，实现了`List`。提供了相关的添加、删除、修改、遍历等功能。
+2. `LinkedList`实现了`Deque`，因此`LinkedList`既是一个列表的同时，也是一个双端队列。提供了相关出队、入队等功能。
+3. 实现了`Cloneable`接口， 表示 `LinkedList`支持克隆。
+4. 实现了 `Serializable` 接口， 表示 `LinkedList`支持序列化的功能 ，可用于网络传输。
 
-## <a name="importField">重要属性</a>
+![LinkedList](http://q3ti54das.bkt.clouddn.com/static/20200115/gIyTu6uWBVSb.png?imageslim)
+
+## 重要属性
 
 ```java
 public class LinkedList<E>
@@ -61,6 +68,8 @@ public class LinkedList<E>
 ## 常用方法
 
 ### 构造方法
+
+`LinkedList`是由链表组成的无界队列，不需要指定容器，也不需要扩容。
 
 ```java
 //无参构造方法，用于创建LinkedList实例
@@ -187,6 +196,8 @@ public void addLast(E e) {
 }
 ```
 
+- 上述方法中，存在着许多相似的方法，但它们的应用场景有所不同，后面[offer方法](#offerPerfix)中会提出。
+
 #### link方法
 
 ```java
@@ -249,7 +260,9 @@ void linkBefore(E e, Node<E> succ) {
 }
 ```
 
-#### offer方法（实现Deque中的方法）
+- 从link方法前缀就可以看出，上面的方法是作为一个链表时的操作。
+
+#### <a name="offerPerfix">offer方法</a>（实现Deque中的方法）
 
 ```java
 //添加元素到末尾
@@ -271,11 +284,11 @@ public boolean offerLast(E e) {
 ```
 
 - 看到这里有些读者可能会疑惑，上面的三个方法，看起来作用跟[add的方法](#addPerfix)类似，那么它们的区别是什么，为什么要这么做。
-- `LinkedList`实现了`List`和`Deque`接口，兼容了`Deque`中的方法。因此，**`LinkedList`即是一个列表，也是一个队列**。把`LinkedList`当做一个`List`时，通过调用`add`方法压入/获取对象 。而把`LinkedList`当做一个`Deque`的时候，通过调用 `offer`方法，实现队列的入队出队操作。因此上面几个方法，作用差不多，但是应用场景不同。
+- `LinkedList`实现了`List`和`Deque`接口，兼容了`Deque`中的方法。因此，**`LinkedList`即是一个列表，也是一个队列**。把`LinkedList`当做一个`List`时，通过调用`add`方法压入/获取对象 。而把`LinkedList`当做一个`Deque`的时候，通过调用 `offer`方法，实现队列的入队出队操作。因此上面几个方法，作用看似差不多，但是应用场景不同。
 
 ### node节点方法
 
-##### [重要属性](#importField)中已经介绍了Node节点的相关信息，接下来看看Node的方法
+重要属性中已经介绍了Node节点的相关信息，接下来看看Node的方法:
 
 ```java
 //获取指定坐标的节点
@@ -301,7 +314,7 @@ Node<E> node(int index) {
     }
 ```
 
-- <1>处也就是说，如果当前坐标，在链表的中间点前，也就是比较靠近头部，那么从头开始查找，如果当前靠近尾部，那么从尾部开始查找，**最近原则**。
+- <1>处,也就是说，如果当前坐标，在链表的中间点前，也就是比较靠近头部，那么从头开始查找，如果当前靠近尾部，那么从尾部开始查找，**最近原则**。
 
 ### 获取元素
 
@@ -348,7 +361,7 @@ public E poll() {
 }
 ```
 
-- 虽然 `LinkedList` 没有禁止添加 null，但是一般情况下 `Queue` 的实现类都不允许添加 null 元素。因为 poll, peek 方法在异常的时候会返回 null，你添加了 null以后，当获取时不好分辨究竟是否正确返回。
+- 虽然 `LinkedList` 没有禁止添加 `null`，但是一般情况下 `Queue` 的实现类都不允许添加 `null` 元素。因为 `poll`, `peek` 方法在异常的时候会返回 `null`，你添加了 `null`以后，当获取时不好分辨究竟是否正确返回。
 
 <1>处，检查元素下标是否在范围内
 
@@ -532,7 +545,7 @@ public boolean removeLastOccurrence(Object o) {
 
 ### iterator迭代器
 
-**跟`ArrayList` 一样，`LinkedList`也实现了自己的迭代器**，关于`ListIterator`在[ArrayList源码分析](https://www.yingu.site/2019/12/25/ArrayList/)中也有说明。
+跟`ArrayList` 一样，`LinkedList`也实现了自己的迭代器，关于`ListIterator`在[ArrayList源码分析](https://www.yingu.site/2019/12/25/ArrayList/)中也有说明。
 
 ```java
 private class ListItr implements ListIterator<E> {
@@ -691,3 +704,39 @@ private class ListItr implements ListIterator<E> {
 
 - `LinkedList`和`ArrayList`迭代器中一样，都有一个预期值`expectedModCount`，同时他们作用也一样，检查内部结构是否被改变，同样`LinkedList`中，想要遍历移除节点，最安全的方式就是通过迭代器，使用它自己的`remove()`方法。因为它有一个`expectedModCount++`  让期望值与操作值保持一致。
 - 同`ArrayList`中的`remove()`方法一样,`LinkedList`中的`unlink()`、`remove()`方法都是将`modCount+1`。如果创建`LinkedList`的迭代器以后，调用`LinkedList`的`remove()`方法，那么调用迭代器的`next()`方法，就会因为`modCount != expectedModCount`而抛出异常。
+
+#### 迭代器的创建
+
+```java
+//返回以正向顺序在此双端队列的元素上进行迭代的迭代器。元素将从第一个（头部）到最后一个（尾部）的顺序返回。
+public ListIterator<E> listIterator(int index) {
+    //检查传入的参数是否合法
+    checkPositionIndex(index);
+    return new ListItr(index);
+}
+
+//返回以逆向顺序在此双端队列的元素上进行迭代的迭代器。元素将从最后一个（尾部）到第一个（头部）的顺序返回。
+public Iterator<E> descendingIterator() {
+    return new DescendingIterator();
+}
+
+//通过代理ListItr来倒置下一节点的访问顺序
+private class DescendingIterator implements Iterator<E> {
+    private final ListItr itr = new ListItr(size());
+    public boolean hasNext() {
+        return itr.hasPrevious();
+    }
+    public E next() {
+        return itr.previous();
+    }
+    public void remove() {
+        itr.remove();
+    }
+}
+```
+
+- 作为双端队列，有一个反向遍历的方法，也很正常。实际上，通过`listIterator`创建的迭代器，通过判断上一个元素是否存在，以及获取上一个元素，已经可以实现队列的反向遍历了。这里加入一个`DescendingIterator`的内部类，可以在不修改业务逻辑的情况下。通过更换迭代器，实现反向遍历。
+
+### 总结
+
+`LinkedList`的分析讲到这里，也就已经结束了。上面分析的方法，也不是`LinkedList`的全部方法，还有部分方法没有讲到的。例如，`toArray`、`clone`、序列化等方法，因为这些方法也不是`LinkedList`特有的，同时在`LinkedList`中，跟其他方法的关联度较小，所以就在这里偷了个懒。之后有时间，也会将所有未讲解的方法补全。如果各位小伙伴读完文章后，发现文章中有哪些错误或者不足之处，还请在评论区中留言。笔者看到也会尽快回复。
