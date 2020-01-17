@@ -22,11 +22,11 @@ date: 2019-12-28 20:41:00
 
 ## 概述
 
-本章我们进行`LinkedList`的分析，同上篇介绍的[ArrayList](https://www.yingu.site/2019/12/25/ArrayList/)一样，`LinkedList`也是`List`的实现类。不过`ArrayList`是基于数组实现的，而`LinkedList`是基于链表实现的。`LinkedList`比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，`LinkedList`则没那么容易。与`ArrayList`不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。`LinkedList`需要通过遍历列表的方式来匹配元素，因此效率比较低。
+本章我们进行`LinkedList`的分析，同上篇介绍的[ArrayList](https://www.yingu.site/2019/12/25/ArrayList/)一样，`LinkedList`也是`List`的实现类。不过`ArrayList`是基于数组实现的，而`LinkedList`是基于链表实现的。`LinkedList`比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，`LinkedList`则没那么容易。与`ArrayList`不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。`LinkedList`需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。 
 
 ## 结构特点
 
-1. `LinkedList`继承了`AbstractList`，实现了`List`。提供了相关的添加、删除、修改、遍历等功能。
+1.  `LinkedList`继承了`AbstractList` 、`AbstractSequentialList` 接口，实现了`List`。提供了相关的添加、删除、修改、遍历等功能。`AbstractSequentialList` 不像 `AbstractList` 可以实现随机访问。`AbstractSequentialList` 只支持次序访问。如果想访问某个元素， 必须从链头开始顺着指针才能找到。
 2. `LinkedList`实现了`Deque`，因此`LinkedList`既是一个列表的同时，也是一个双端队列。提供了相关出队、入队等功能。
 3. 实现了`Cloneable`接口， 表示 `LinkedList`支持克隆。
 4. 实现了 `Serializable` 接口， 表示 `LinkedList`支持序列化的功能 ，可用于网络传输。
@@ -361,7 +361,7 @@ public E poll() {
 }
 ```
 
-- 虽然 `LinkedList` 没有禁止添加 `null`，但是一般情况下 `Queue` 的实现类都不允许添加 `null` 元素。因为 `poll`, `peek` 方法在异常的时候会返回 `null`，你添加了 `null`以后，当获取时不好分辨究竟是否正确返回。
+-  虽然`LinkedList`没有禁止添加`null`元素，但是一般情况下`Queue`的实现类都不允许添加`null`元素。因为`poll`这种方法在异常的时候返回也是`null`，如果有`null`元素，就很难分辨这些函数返回`null`到底是出现错误了还是在正常运行。 
 
 <1>处，检查元素下标是否在范围内
 
