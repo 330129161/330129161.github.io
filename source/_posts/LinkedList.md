@@ -2,7 +2,7 @@ title: LinkedList源码解析(jdk1.8)
 
 author: yingu
 
-thumbnail: http://q3ti54das.bkt.clouddn.com/static/20200115/KD21H6R83yJu.jpg?imageslim
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
 
 toc: true 
 
@@ -31,7 +31,7 @@ date: 2019-12-28 20:41:00
 3. 实现了`Cloneable`接口， 表示 `LinkedList`支持克隆。
 4. 实现了 `Serializable` 接口， 表示 `LinkedList`支持序列化的功能 ，可用于网络传输。
 
-![LinkedList](http://q3ti54das.bkt.clouddn.com/static/20200115/gIyTu6uWBVSb.png?imageslim)
+![LinkedList结构](http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/LinkedList.png)
 
 ## 重要属性
 

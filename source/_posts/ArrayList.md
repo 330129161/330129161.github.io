@@ -2,7 +2,7 @@ title: ArrayList源码解析(jdk1.8)
 
 author: yingu
 
-thumbnail: http://q3ti54das.bkt.clouddn.com/static/20200115/KD21H6R83yJu.jpg?imageslim
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
 
 toc: true 
 
@@ -33,7 +33,7 @@ date: 2019-12-25 20:41:00
 4. 实现了 `Serializable` 接口， 表示 `ArrayList` 支持序列化的功能 ，可用于网络传输。
 5. `ArrayList`非线程安全，因此只适用于单线程中。如果在多线程，可使用 `CopyOnWriteArrayList`和`Vector`。 `Vector`方法和`ArrayList`基本相同，不过在修改方法上，都使用`synchronized`修饰。 而`CopyOnWriteArrayList` 采用写时拷贝策略，对其进行修改操作和元素迭代，都是在低层创建一个拷贝数组上进行，兼顾了线程安全的同时，又提高了并发性，性能比`Vector`有不少提高 。因此，**多线程情况下推荐使用`CopyOnWriteArrayList`**。
 
-![ArrayList结构](http://q3ti54das.bkt.clouddn.com/static/20200109/uIs3Bzu9Fq1t.png?imageslim)
+![ArrayList结构](http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/ArrayList.png)
 
 ## 重要属性
 
