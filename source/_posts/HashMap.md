@@ -179,7 +179,7 @@ static final int tableSizeFor(int cap) {
 }
 ```
 
-上面简单的说明了，该方法是如何通过|运算与位移,来找到最接近输入值的2的幂次方数。为什么最后要一直写到 `n |= n >>> 16`,int的范围在`-2^31 ~ 2^31-1`,因此最大2次幂数为`2^30`,也就是当前容量默认的最大值`MAXIMUM_CAPACITY`，代码1+2+4+8+16=31一共向右移了31位，是为了保证高位1以下的低位都会变为1。
+上面简单的说明了，该方法是如何通过|运算与位移,来找到最接近输入值的2的幂次方数。为什么最后要一直写到 `n |= n >>> 16`,int的范围在`-2^31 ~ 2^31-1`,因此最大2次幂数为`2^30`,也就是当前容量默认的最大值`MAXIMUM_CAPACITY`，代码`1+2+4+8+16=31`一共向右移了31位，是为了保证高位1以下的低位都会变为1。
 
 ### 带Map对象的构造方法
 
@@ -227,8 +227,8 @@ final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
 ```
 
 - 上面的方法有个很重要的一点，为什么此处`float ft = ((float)s / loadFactor) + 1.0F`需要 + 1，如果`((float)s / loadFactor)`算出来的是小数，此时如果向下取整，那么可能会导致容量不够大。
-- 我们来举个例子，假如用户设置默认的加载因子`loadFactor = 0.6`，那么当我们传入的map对象大小`size = 13`，那么`13 / 0.8 ≈ 16.25`，向下取整 `ft = 16`。当前ft = 默认的容量，此时HashMap容量为16 * 0.6 = 9.6,取最接近值16，得到的阈值`16 * 0.6 = 12.8`，向下取整（详见`resize()`函数中`newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ? (int)ft : Integer.MAX_VALUE)`），此时得到`HashMap`阈值`threshold =12`，此时我们传入的`map`的`size = 13`，而我们设置的阈值为12，还没开始添加元素时，我们就已经需要扩容了。如果我们向上取整，那么`ft = 22`,计算之后的阈值`threshold  = (22 * 0.6 = 13.2)`，向下取整后`threshold = 13`，此时不需要扩容。其实想想也明白，我们在计算`HashMap`阈值时向下取整（如果向上取整，那么当放入容器的元素，也就是`size>threshold`阈值时，无法进行`resize()`扩容操作）。反过来想，`float ft = ((float)s / loadFactor) `得到的参数，向上取整也就是顺理成章的事情了。
-- 但是向上取整，也会带来一些问题。假如我们默认加载因子0.75，此时HashMap默认容量为16，那么阈值就是12，我们传入map的size为12，那么12 / 0.6 + 1 = 17，此时通过`tableSizeFor()`计算后，得到的容量为32，阈值为24，导致内存浪费。
+- 我们在计算`HashMap`阈值时（详见`resize()`函数中`newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ? (int)ft : Integer.MAX_VALUE)`）向下取整（如果向上取整，那么当放入容器的元素，也就是`size>threshold`阈值时，可能就无法进行`resize()`扩容操作了）。反过来想，`float ft = ((float)s / loadFactor) `得到的参数，向上取整也就是顺理成章的事情了。
+- 但是向上取整，也会带来一些问题。假如我们默认加载因子0.75，此时HashMap默认容量为16，那么阈值就是12，我们传入map的size为12，那么12 / 0.6 + 1 = 17，此时通过`tableSizeFor()`计算后，得到的容量为32，阈值为24，导致内存浪费。（但是为了稳定性，也只能牺牲一部分了）
 
 ### resize方法
 
@@ -268,9 +268,9 @@ final Node<K,V>[] resize() {
         //新阈值为16 * 0.75 = 12
         newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
     }
-    //如果新阈值为0，说明程序运行到<3>处，也就通过带参数初始化构建的HashMap
+    //如果新阈值为0，说明程序运行到<3>处，也就是通过带参数初始化构建的HashMap
     if (newThr == 0) {
-        //计算阈值（可能为小数）
+        //计算阈值（由于loadFactor的不稳定，得到的阈值可能为小数）
         float ft = (float)newCap * loadFactor;
         //如果小于最大容量值，向下取整，保证容量达到阈值后，进行扩容操作
         newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
@@ -493,6 +493,12 @@ final Node<K,V> getNode(int hash, Object key) {
     //如果key值不存在，返回null
     return null;
 }
+//重写的map的方法，传入key和一个默认值，如果hashmap中找不对对应的key值，那么返回默认值
+@Override
+public V getOrDefault(Object key, V defaultValue) {
+    Node<K,V> e;
+    return (e = getNode(hash(key), key)) == null ? defaultValue : e.value;
+}
 ```
 
 ### remove系列方法
@@ -504,7 +510,7 @@ public V remove(Object key) {
     return (e = removeNode(hash(key), key, null, false, true)) == null ?
         null : e.value;
 }
-
+//matchValue：是否需要匹配值，movable：LinkedHashMap中会用到
 final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
     Node<K,V>[] tab; Node<K,V> p; int n, index;
@@ -537,7 +543,7 @@ final Node<K,V> removeNode(int hash, Object key, Object value,
                 } while ((e = e.next) != null);
             }
         }
-        //如果要移除的key值存在
+        //根据hash值和key查找数据，且与value匹配(matchValue 是否需要匹配值)
         if (node != null && (!matchValue || (v = node.value) == value ||
                              (value != null && value.equals(v)))) {
             //如果该节点为树节点
@@ -550,7 +556,7 @@ final Node<K,V> removeNode(int hash, Object key, Object value,
                 tab[index] = node.next;
             else
                 //如果不为头节点，将当前节点从链表中截断
-                //（例如：a -> b -> c 变成a -> c,b就是我们要移除的节点）
+                //（例如：a -> b -> c 变成a -> c,b就是我们移除的节点）
                 p.next = node.next;
             //记录操作数
             ++modCount;
@@ -566,18 +572,8 @@ final Node<K,V> removeNode(int hash, Object key, Object value,
     return null;
 }
 
-
-public void clear() {
-    Node<K,V>[] tab;
-    modCount++;
-    if ((tab = table) != null && size > 0) {
-        size = 0;
-        for (int i = 0; i < tab.length; ++i)
-            tab[i] = null;
-    }
-}
 ```
 
-
-
 ## 总结
+
+`HashMap`部分的源码解析就到这里。由于红黑树源码部分的篇幅比较长，就不在这里阐述了。后面会针对红黑树单独出一期。如果各位小伙伴读完文章后，发现文章中有哪些错误或者不足之处，还请在评论区中留言。笔者看到也会尽快回复。
