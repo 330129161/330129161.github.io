@@ -26,7 +26,7 @@ date: 2019-12-28 20:41:00
 
 ## 结构特点
 
-1.  `LinkedList`继承了`AbstractList` 、`AbstractSequentialList` 接口，实现了`List`。提供了相关的添加、删除、修改、遍历等功能。`AbstractSequentialList` 不像 `AbstractList` 可以实现随机访问。`AbstractSequentialList` 只支持次序访问。如果想访问某个元素， 必须从链头开始顺着指针才能找到。
+1.  `LinkedList`继承了`AbstractList` 、`AbstractSequentialList` ，实现了`List`。提供了相关的添加、删除、修改、遍历等功能。`AbstractSequentialList` 不像 `AbstractList` 可以实现随机访问。`AbstractSequentialList` 只支持次序访问。如果想访问某个元素， 必须从链头开始顺着指针才能找到。
 2. `LinkedList`实现了`Deque`，因此`LinkedList`既是一个列表的同时，也是一个双端队列。提供了相关出队、入队等功能。
 3. 实现了`Cloneable`接口， 表示 `LinkedList`支持克隆。
 4. 实现了 `Serializable` 接口， 表示 `LinkedList`支持序列化的功能 ，可用于网络传输。
