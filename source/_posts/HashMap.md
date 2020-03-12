@@ -56,7 +56,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient Set<Map.Entry<K,V>> entrySet;
     //元素数量
     transient int size;
-    //修改次数
+    //修改次数(如果在entrySet中遍历时，出现modCount与预期值不一致，那么会抛出
+    //ConcurrentModificationException异常，表示正在被多个线程同时操作)
     transient int modCount;
 	//扩容时的阈值 （负载因子 * 容量）
     int threshold;
@@ -297,6 +298,7 @@ final Node<K,V>[] resize() {
                     newTab[e.hash & (newCap - 1)] = e;
                 //当前是否为树节点（红黑树）
                 else if (e instanceof TreeNode)
+                    //将节点分割到不同桶中，可能会触发树转链表操作
                     ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                 //如果是链表,且存在下级元素
                 else { // preserve order
@@ -562,7 +564,8 @@ final Node<K,V> removeNode(int hash, Object key, Object value,
             ++modCount;
             //map长度-1
             --size;
-            //空方法，由linkedHashMap实现
+            //空方法，由linkedHashMap实现，一般没用的node节点，会将后驱节点置为null便于GC回收， 
+            //而此时node的后驱节点并未清除，是为了node节点的完整，用于linkedHashMap的扩展
             afterNodeRemoval(node);
             //返回被移除的节点
             return node;
@@ -576,4 +579,4 @@ final Node<K,V> removeNode(int hash, Object key, Object value,
 
 ## 总结
 
-`HashMap`部分的源码解析就到这里。由于红黑树源码部分的篇幅比较长，就不在这里阐述了。后面会针对红黑树单独出一期。如果各位小伙伴读完文章后，发现文章中有哪些错误或者不足之处，还请在评论区中留言。笔者看到也会尽快回复。
+`HashMap`部分的源码解析就到这里。目前只分析了`HashMap`初始化、扩容、操作等核心代码。但没有红黑树部分代码的解析，由于考虑到红黑树代码部分较长，后面会针对红黑树单独出一期，所以就不再这里阐述了。如果各位小伙伴读完文章后，发现文章中有哪些错误或者不足之处，还请在评论区中留言。笔者看到也会尽快回复。
