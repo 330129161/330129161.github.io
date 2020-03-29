@@ -22,11 +22,11 @@ date: 2019-12-25 20:41:00
 
 ## 概述
 
-`LinkedHashMap`是`Map` 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。
+`LinkedHashMap`是`Map` 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于`LinkedHashMap`中很多方法直接继承自HashMap，因此在看本章之前，建议先看看[HashMap的源码解析](https://www.yingu.site/2019/12/25/HashMap/)。
 
 ## 结构特点
 
-1. `LinkedHashMap`继承自`HashMap`,实现了`Map`的接口。与`HashMap`不同之处在于，`LinkedHashMap`维护着一个双向链表。并且`LinkedHashMap`提供了特殊的构造方法来创建链接哈希映射。
+1. `LinkedHashMap`继承自`HashMap`,实现了`Map`的接口。与`HashMap`不同之处在于，`LinkedHashMap`通过维护着一条双向链表，解决了`HashMap` 不能随时保持遍历顺序和插入顺序一致的问题，并且`LinkedHashMap`提供了特殊的构造方法来创建链接哈希映射。
 2. 实现了`Cloneable`接口， 表示 `LinkedHashMap`支持克隆。
 3. 实现了 `Serializable` 接口， 表示 `LinkedHashMap`支持序列化的功能 ，可用于网络传输。
 
@@ -48,7 +48,7 @@ transient LinkedHashMap.Entry<K,V> head;
 //链表尾
 transient LinkedHashMap.Entry<K,V> tail;
 //如果为true，则表示访问有序（新访问的数据会被移至到链尾）。如果为false,表示插入有序。通过此参数，可以
-//使用LinkedHashMap设计LUR缓存;
+//使用LinkedHashMap设计LRU缓存;
 final boolean accessOrder;
 
 ```
@@ -60,6 +60,7 @@ final boolean accessOrder;
 ```java
 //无参构造方法，默认accessOrder为false
 public LinkedHashMap() {
+    //调用父类构造方法
     super();
     accessOrder = false;
 }
@@ -166,8 +167,7 @@ void afterNodeInsertion(boolean evict) { // possibly remove eldest
     }
 }
 
-// 返回false, 所以LinkedHashMap不会有删除年长节点的行为，但其子类可以继承重写该函数。
-//实现LRU缓存的重点
+// 返回false, 所以LinkedHashMap不会删除最少使用的节点，子类可以通过覆盖此方法实现不同策略的缓存
 protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
     return false;
 }
@@ -196,7 +196,7 @@ void afterNodeAccess(Node<K,V> e) { // move node to last
             last.after = p;
         }
         tail = p;
-        //操作数+1，表示存在同步操作风险
+        //操作数+1
         ++modCount;
     }
 }
@@ -220,12 +220,13 @@ public V getOrDefault(Object key, V defaultValue) {
     Node<K,V> e;
     if ((e = getNode(hash(key), key)) == null)
         return defaultValue;
+    //accessOrder为true，将访问的节点移动到链表尾部
     if (accessOrder)
         afterNodeAccess(e);
     return e.value;
 }
 ```
 
-## 总结
+### 总结
 
-`LinkedHashMap`的源码解析就到这里了。从上面的一些方法中就可以看出来`LinkedHashMap`的特点：`LinkedHashMap` 通过 `Entry` 维护了一个双向链表。通过遍历双向链表来获取元素，所以遍历顺序在一定条件下等于插入顺序。同时内部支持通过访问顺序，来调整双向链表的节点顺序，可以通过此特性，实现`LRU`算法。
+`LinkedHashMap`的源码解析就到这里了。从上面的一些方法中就可以看出来`LinkedHashMap`的特点：`LinkedHashMap` 通过 `Entry` 维护了一条双向链表，实现了散列数据结构的有序遍历。同时内部支持通过访问顺序，来调整双向链表的节点顺序，可以通过此特性，实现`LRU`算法。
