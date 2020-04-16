@@ -10,16 +10,16 @@
 <title>AbstractQueuedSynchronizer源码解析(jdk1.8) - yingu的博客</title>
 
 
-    <meta name="description" content="概述AQS(AbstractQueuedSynchronizer)以CLH锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的ReentrantLock、Semaphore、CountDownLatch等就是基于AQS实现的。AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行">
+    <meta name="description" content="概述AQS(AbstractQueuedSynchronizer)以CLH锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AbstractQueuedSynchronizer源码解析(jdk1.8)">
 <meta property="og:url" content="https://yingu.site/2019/12/25/AbstractQueuedSynchronizer/index.html">
 <meta property="og:site_name" content="yingu的博客">
-<meta property="og:description" content="概述AQS(AbstractQueuedSynchronizer)以CLH锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的ReentrantLock、Semaphore、CountDownLatch等就是基于AQS实现的。AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行">
+<meta property="og:description" content="概述AQS(AbstractQueuedSynchronizer)以CLH锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2019-12-25T12:41:01.000Z">
-<meta property="article:modified_time" content="2020-04-16T12:08:02.012Z">
+<meta property="article:modified_time" content="2020-04-16T12:12:51.012Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
@@ -155,7 +155,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的<code>ReentrantLock</code>、<code>Semaphore</code>、<code>CountDownLatch</code>等就是基于<code>AQS</code>实现的。<code>AQS</code>定义两种资源共享方式：<code>Exclusive</code>（独占，只有一个线程能执行，如<code>ReentrantLock</code>）和<code>Share</code>（共享，多个线程可同时执行，如<code>Semaphore/CountDownLatch</code>）。<a id="more"></a> </p>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。<a id="more"></a> 我们熟知的<code>ReentrantLock</code>、<code>Semaphore</code>、<code>CountDownLatch</code>等就是基于<code>AQS</code>实现的。<code>AQS</code>定义两种资源共享方式：<code>Exclusive</code>（独占，只有一个线程能执行，如<code>ReentrantLock</code>）和<code>Share</code>（共享，多个线程可同时执行，如<code>Semaphore/CountDownLatch</code>）。</p>
 <blockquote>
 <p>CLH锁是一种基于链表的可扩展、高性能、公平的自旋锁，申请线程只在本地变量上自旋，它不断轮询前驱的状态，如果发现前驱释放了锁就结束自旋。</p>
 </blockquote>

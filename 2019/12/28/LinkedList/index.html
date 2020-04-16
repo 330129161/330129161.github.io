@@ -10,16 +10,16 @@
 <title>LinkedList源码解析(jdk1.8) - yingu的博客</title>
 
 
-    <meta name="description" content="概述跟ArrayList一样，LinkedList也是List的实现类。不过ArrayList是基于数组实现的，而LinkedList是基于链表实现的。LinkedList比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，LinkedList则没那么容易。与ArrayList不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。LinkedList需要通过遍">
+    <meta name="description" content="概述跟ArrayList一样，LinkedList也是List的实现类。不过ArrayList是基于数组实现的，而LinkedList是基于链表实现的。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="LinkedList源码解析(jdk1.8)">
 <meta property="og:url" content="https://yingu.site/2019/12/28/LinkedList/index.html">
 <meta property="og:site_name" content="yingu的博客">
-<meta property="og:description" content="概述跟ArrayList一样，LinkedList也是List的实现类。不过ArrayList是基于数组实现的，而LinkedList是基于链表实现的。LinkedList比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，LinkedList则没那么容易。与ArrayList不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。LinkedList需要通过遍">
+<meta property="og:description" content="概述跟ArrayList一样，LinkedList也是List的实现类。不过ArrayList是基于数组实现的，而LinkedList是基于链表实现的。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2019-12-28T12:41:00.000Z">
-<meta property="article:modified_time" content="2020-04-16T12:07:00.490Z">
+<meta property="article:modified_time" content="2020-04-16T12:15:28.229Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
@@ -155,7 +155,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>跟<a href="https://www.yingu.site/2019/12/25/ArrayList/">ArrayList</a>一样，<code>LinkedList</code>也是<code>List</code>的实现类。不过<code>ArrayList</code>是基于数组实现的，而<code>LinkedList</code>是基于链表实现的。<code>LinkedList</code>比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，<code>LinkedList</code>则没那么容易。与<code>ArrayList</code>不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。<code>LinkedList</code>需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。 <a id="more"></a> </p>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>跟<a href="https://www.yingu.site/2019/12/25/ArrayList/">ArrayList</a>一样，<code>LinkedList</code>也是<code>List</code>的实现类。不过<code>ArrayList</code>是基于数组实现的，而<code>LinkedList</code>是基于链表实现的。<a id="more"></a> <code>LinkedList</code>比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，<code>LinkedList</code>则没那么容易。与<code>ArrayList</code>不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。<code>LinkedList</code>需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。 </p>
 <h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><ol>
 <li><code>LinkedList</code>继承了<code>AbstractList</code> 、<code>AbstractSequentialList</code> ，实现了<code>List</code>。提供了相关的添加、删除、修改、遍历等功能。<code>AbstractSequentialList</code> 不像 <code>AbstractList</code> 可以实现随机访问。<code>AbstractSequentialList</code> 只支持次序访问。如果想访问某个元素， 必须从链头开始顺着指针才能找到。</li>
 <li><code>LinkedList</code>实现了<code>Deque</code>，因此<code>LinkedList</code>既是一个列表的同时，也是一个双端队列。提供了相关出队、入队等功能。</li>

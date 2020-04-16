@@ -10,21 +10,21 @@
 <title>ConcurrentHashMap源码解析(jdk1.8) - yingu的博客</title>
 
 
-    <meta name="description" content="概述ConcurrentHashMap是HashMap线程安全的版本。jdk1.8以前ConcurrentHashMap采用Segment分段锁技术，Segment继承自ReentrantLock，通过对Segment加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用CAS+synchronized,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的">
+    <meta name="description" content="概述ConcurrentHashMap是HashMap线程安全的版本。jdk1.8以前ConcurrentHashMap采用Segment分段锁技术，Segment继承自ReentrantLock，通过对Segment加锁实现并发操作。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ConcurrentHashMap源码解析(jdk1.8)">
 <meta property="og:url" content="https://yingu.site/2019/12/25/ConcurrentHashMap/index.html">
 <meta property="og:site_name" content="yingu的博客">
-<meta property="og:description" content="概述ConcurrentHashMap是HashMap线程安全的版本。jdk1.8以前ConcurrentHashMap采用Segment分段锁技术，Segment继承自ReentrantLock，通过对Segment加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用CAS+synchronized,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的">
+<meta property="og:description" content="概述ConcurrentHashMap是HashMap线程安全的版本。jdk1.8以前ConcurrentHashMap采用Segment分段锁技术，Segment继承自ReentrantLock，通过对Segment加锁实现并发操作。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2019-12-25T12:41:00.000Z">
-<meta property="article:modified_time" content="2020-04-16T12:08:13.341Z">
+<meta property="article:modified_time" content="2020-04-16T12:13:25.668Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
-<meta property="article:tag" content="集合">
 <meta property="article:tag" content="并发">
+<meta property="article:tag" content="集合">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 
@@ -156,7 +156,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用<code>CAS+synchronized</code>,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于<code>HashTable</code>中，锁定整个<code>HashTable</code>对象的方式，<code>ConcurrentHash</code>的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。<a id="more"></a> </p>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。<a id="more"></a> 而jdk1.8中抛弃了分段锁，使用<code>CAS+synchronized</code>,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于<code>HashTable</code>中，锁定整个<code>HashTable</code>对象的方式，<code>ConcurrentHash</code>的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。</p>
 <h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><ol>
 <li>继承自<code>AbstractMap</code>,实现了<code>ConcurrentMap</code>接口</li>
 <li>实现了 <code>Serializable</code> 接口， 表示 <code>ConcurrentHash</code>支持序列化的功能 ，可用于网络传输。</li>

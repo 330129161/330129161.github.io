@@ -206,7 +206,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。在一个AQS同步器中，可以定义多个<code>ConditionObject</code>对象，因此AQS中可以存在多个等待队列，根据每个队列的条件不同，控制线程的挂起与唤醒。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。
         </div>
         
         
@@ -262,7 +262,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的<code>ReentrantLock</code>、<code>Semaphore</code>、<code>CountDownLatch</code>等就是基于<code>AQS</code>实现的。<code>AQS</code>定义两种资源共享方式：<code>Exclusive</code>（独占，只有一个线程能执行，如<code>ReentrantLock</code>）和<code>Share</code>（共享，多个线程可同时执行，如<code>Semaphore/CountDownLatch</code>）。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。
         </div>
         
         
@@ -318,7 +318,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用<code>CAS+synchronized</code>,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于<code>HashTable</code>中，锁定整个<code>HashTable</code>对象的方式，<code>ConcurrentHash</code>的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。
         </div>
         
         

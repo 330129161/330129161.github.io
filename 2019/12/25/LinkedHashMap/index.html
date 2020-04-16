@@ -10,16 +10,16 @@
 <title>LinkedHashMap源码解析(jdk1.8) - yingu的博客</title>
 
 
-    <meta name="description" content="概述LinkedHashMap是Map 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于LinkedHashMap中很多方法直接继承自HashMap，因此在看本章之前，建议先看看HashMap的源码解析。">
+    <meta name="description" content="概述LinkedHashMap是Map 接口的哈希表和链接列表实现，具有可预知的迭代顺序。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="LinkedHashMap源码解析(jdk1.8)">
 <meta property="og:url" content="https://yingu.site/2019/12/25/LinkedHashMap/index.html">
 <meta property="og:site_name" content="yingu的博客">
-<meta property="og:description" content="概述LinkedHashMap是Map 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于LinkedHashMap中很多方法直接继承自HashMap，因此在看本章之前，建议先看看HashMap的源码解析。">
+<meta property="og:description" content="概述LinkedHashMap是Map 接口的哈希表和链接列表实现，具有可预知的迭代顺序。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2019-12-25T12:41:00.000Z">
-<meta property="article:modified_time" content="2020-04-16T12:08:38.897Z">
+<meta property="article:modified_time" content="2020-04-16T12:15:14.704Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
@@ -155,7 +155,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>LinkedHashMap</code>是<code>Map</code> 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于<code>LinkedHashMap</code>中很多方法直接继承自HashMap，因此在看本章之前，建议先看看<a href="https://www.yingu.site/2019/12/25/HashMap/">HashMap的源码解析</a>。<a id="more"></a> </p>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>LinkedHashMap</code>是<code>Map</code> 接口的哈希表和链接列表实现，具有可预知的迭代顺序。<a id="more"></a> 此实现提供所有可选的映射操作，并允许使用null值和null键。由于<code>LinkedHashMap</code>中很多方法直接继承自HashMap，因此在看本章之前，建议先看看<a href="https://www.yingu.site/2019/12/25/HashMap/">HashMap的源码解析</a>。</p>
 <h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><ol>
 <li><code>LinkedHashMap</code>继承自<code>HashMap</code>,实现了<code>Map</code>的接口。与<code>HashMap</code>不同之处在于，<code>LinkedHashMap</code>通过维护着一条双向链表，解决了<code>HashMap</code> 不能随时保持遍历顺序和插入顺序一致的问题，并且<code>LinkedHashMap</code>提供了特殊的构造方法来创建链接哈希映射。</li>
 <li>实现了<code>Cloneable</code>接口， 表示 <code>LinkedHashMap</code>支持克隆。</li>

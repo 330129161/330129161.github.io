@@ -145,7 +145,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>跟<a href="https://www.yingu.site/2019/12/25/ArrayList/">ArrayList</a>一样，<code>LinkedList</code>也是<code>List</code>的实现类。不过<code>ArrayList</code>是基于数组实现的，而<code>LinkedList</code>是基于链表实现的。<code>LinkedList</code>比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，<code>LinkedList</code>则没那么容易。与<code>ArrayList</code>不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。<code>LinkedList</code>需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>跟<a href="https://www.yingu.site/2019/12/25/ArrayList/">ArrayList</a>一样，<code>LinkedList</code>也是<code>List</code>的实现类。不过<code>ArrayList</code>是基于数组实现的，而<code>LinkedList</code>是基于链表实现的。
         </div>
         
         
@@ -252,7 +252,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。在一个AQS同步器中，可以定义多个<code>ConditionObject</code>对象，因此AQS中可以存在多个等待队列，根据每个队列的条件不同，控制线程的挂起与唤醒。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。
         </div>
         
         
@@ -308,7 +308,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的<code>ReentrantLock</code>、<code>Semaphore</code>、<code>CountDownLatch</code>等就是基于<code>AQS</code>实现的。<code>AQS</code>定义两种资源共享方式：<code>Exclusive</code>（独占，只有一个线程能执行，如<code>ReentrantLock</code>）和<code>Share</code>（共享，多个线程可同时执行，如<code>Semaphore/CountDownLatch</code>）。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。
         </div>
         
         
@@ -364,7 +364,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>LinkedHashMap</code>是<code>Map</code> 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于<code>LinkedHashMap</code>中很多方法直接继承自HashMap，因此在看本章之前，建议先看看<a href="https://www.yingu.site/2019/12/25/HashMap/">HashMap的源码解析</a>。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>LinkedHashMap</code>是<code>Map</code> 接口的哈希表和链接列表实现，具有可预知的迭代顺序。
         </div>
         
         
@@ -420,7 +420,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。<code>Arraylist</code>在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。
         </div>
         
         
@@ -476,7 +476,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>HashMap</code>基于哈希算法实现，用于存储 key-value 键值对的数据结构，底层由数组+链表+红黑树(<strong>jdk_1.8新增</strong>)组成。<code>HashMap</code>相比于之前介绍的的<code>ArrayList</code>与<code>linkedList</code>结构要复杂得多。<code>ArrayList</code>底层由数据组成，查找容易，插入、删除的效率不高。<code>linkedList</code>由链表组成，插入、删除容易、查询的效率不高。而基于散列表的HashMap，在保证高效查询的情况下，还能保证插入、删除的效率。HashMap允许使用null值和null键，HashMap非线程安全。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>HashMap</code>基于哈希算法实现，用于存储 key-value 键值对的数据结构，底层由数组+链表+红黑树(<strong>jdk_1.8新增</strong>)组成。<code>HashMap</code>相比于之前介绍的的<code>ArrayList</code>与<code>linkedList</code>结构要复杂得多。
         </div>
         
         
@@ -532,7 +532,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用<code>CAS+synchronized</code>,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于<code>HashTable</code>中，锁定整个<code>HashTable</code>对象的方式，<code>ConcurrentHash</code>的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。
         </div>
         
         

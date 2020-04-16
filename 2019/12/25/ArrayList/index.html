@@ -10,16 +10,16 @@
 <title>ArrayList源码解析(jdk1.8) - yingu的博客</title>
 
 
-    <meta name="description" content="概述 ArrayList是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。Arraylist在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。">
+    <meta name="description" content="概述 ArrayList是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ArrayList源码解析(jdk1.8)">
 <meta property="og:url" content="https://yingu.site/2019/12/25/ArrayList/index.html">
 <meta property="og:site_name" content="yingu的博客">
-<meta property="og:description" content="概述 ArrayList是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。Arraylist在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。">
+<meta property="og:description" content="概述 ArrayList是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2019-12-25T12:41:00.000Z">
-<meta property="article:modified_time" content="2020-04-16T12:07:00.487Z">
+<meta property="article:modified_time" content="2020-04-16T12:13:09.670Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
@@ -155,7 +155,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。<code>Arraylist</code>在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。<a id="more"></a> </p>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。<a id="more"></a><code>Arraylist</code>在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。 </p>
 <h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><ol>
 <li><code>ArrayList</code> 继承了<code>AbstractList</code>，实现了<code>List</code>。提供了相关的添加、删除、修改、遍历等功能。</li>
 <li>实现了<code>RandmoAccess</code>接口，即提供了随机访问功能 ， 这样<code>ArrayList</code>使用<code>for</code>循环遍历元素要比使用迭代器遍历元素要快 。</li>
