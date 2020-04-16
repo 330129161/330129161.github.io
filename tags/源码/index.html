@@ -12,13 +12,13 @@
 
     <meta property="og:type" content="website">
 <meta property="og:title" content="yingu的博客">
-<meta property="og:url" content="http://yoursite.com/tags/%E6%BA%90%E7%A0%81/index.html">
+<meta property="og:url" content="https://yingu.site/tags/%E6%BA%90%E7%A0%81/index.html">
 <meta property="og:site_name" content="yingu的博客">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://yoursite.com/images/og_image.png">
+<meta property="og:image" content="https://yingu.site/images/og_image.png">
 <meta property="article:author" content="yingu">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
+<meta name="twitter:image" content="https://yingu.site/images/og_image.png">
 
 
 
@@ -32,7 +32,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
 
 
     
@@ -132,17 +132,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-22T11:51:00.000Z">2019-12-22</time>
+                <time class="level-item has-text-grey" datetime="2019-12-28T12:41:00.000Z">2019-12-28</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    几秒 读完 (大约 8 个字)
+                    33 分钟 读完 (大约 4969 个字)
                 </span>
                 
                 
@@ -151,14 +151,409 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/22/yingu/">sping源码分析</a>
+                <a class="has-link-black-ter" href="/2019/12/28/LinkedList/">LinkedList源码解析(jdk1.8)</a>
             
         </h1>
         <div class="content">
-            <p>这是一份源码分析</p>
-
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>跟<a href="https://www.yingu.site/2019/12/25/ArrayList/">ArrayList</a>一样，<code>LinkedList</code>也是<code>List</code>的实现类。不过<code>ArrayList</code>是基于数组实现的，而<code>LinkedList</code>是基于链表实现的。<code>LinkedList</code>比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，<code>LinkedList</code>则没那么容易。与<code>ArrayList</code>不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。<code>LinkedList</code>需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。
         </div>
         
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/28/LinkedList/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    几秒 读完 (大约 31 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/ReentrantLock/">ReentrantLock源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/ReentrantLock.png" alt="ReentrantLock结构图"></p>
+<h2 id="重要属性"><a href="#重要属性" class="headerlink" title="重要属性"></a>重要属性</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h2><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2>
+        </div>
+        
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    29 分钟 读完 (大约 4300 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/ConditionObject/">ConditionObject源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。在一个AQS同步器中，可以定义多个<code>ConditionObject</code>对象，因此AQS中可以存在多个等待队列，根据每个队列的条件不同，控制线程的挂起与唤醒。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/ConditionObject/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    37 分钟 读完 (大约 5575 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/AbstractQueuedSynchronizer/">AbstractQueuedSynchronizer源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的<code>ReentrantLock</code>、<code>Semaphore</code>、<code>CountDownLatch</code>等就是基于<code>AQS</code>实现的。<code>AQS</code>定义两种资源共享方式：<code>Exclusive</code>（独占，只有一个线程能执行，如<code>ReentrantLock</code>）和<code>Share</code>（共享，多个线程可同时执行，如<code>Semaphore/CountDownLatch</code>）。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/AbstractQueuedSynchronizer/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    9 分钟 读完 (大约 1424 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/LinkedHashMap/">LinkedHashMap源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>LinkedHashMap</code>是<code>Map</code> 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于<code>LinkedHashMap</code>中很多方法直接继承自HashMap，因此在看本章之前，建议先看看<a href="https://www.yingu.site/2019/12/25/HashMap/">HashMap的源码解析</a>。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/LinkedHashMap/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    36 分钟 读完 (大约 5325 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/ArrayList/">ArrayList源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。<code>Arraylist</code>在中间位置插入或者删除元素时，需要对数据进行复制、移动、代价比较高。因此，它适合随机查找和遍历，不适合插入和删除。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/ArrayList/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    35 分钟 读完 (大约 5256 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/HashMap/">HashMap源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>HashMap</code>基于哈希算法实现，用于存储 key-value 键值对的数据结构，底层由数组+链表+红黑树(<strong>jdk_1.8新增</strong>)组成。<code>HashMap</code>相比于之前介绍的的<code>ArrayList</code>与<code>linkedList</code>结构要复杂得多。<code>ArrayList</code>底层由数据组成，查找容易，插入、删除的效率不高。<code>linkedList</code>由链表组成，插入、删除容易、查询的效率不高。而基于散列表的HashMap，在保证高效查询的情况下，还能保证插入、删除的效率。HashMap允许使用null值和null键，HashMap非线程安全。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/HashMap/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    1 小时 读完 (大约 8126 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/ConcurrentHashMap/">ConcurrentHashMap源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用<code>CAS+synchronized</code>,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于<code>HashTable</code>中，锁定整个<code>HashTable</code>对象的方式，<code>ConcurrentHash</code>的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/ConcurrentHashMap/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
         
         
     </div>
@@ -218,7 +613,7 @@
                     </p>
                     <a href="/archives">
                         <p class="title has-text-weight-normal">
-                            3
+                            8
                         </p>
                     </a>
                 </div>
@@ -230,7 +625,7 @@
                     </p>
                     <a href="/categories">
                         <p class="title has-text-weight-normal">
-                            1
+                            3
                         </p>
                     </a>
                 </div>
@@ -242,7 +637,7 @@
                     </p>
                     <a href="/tags">
                         <p class="title has-text-weight-normal">
-                            3
+                            4
                         </p>
                     </a>
                 </div>
@@ -279,6 +674,31 @@
     
         
     
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="https://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
         
 <div class="card widget">
     <div class="card-content">
@@ -293,9 +713,25 @@
                 <span class="level-item">源码</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">1</span>
+                <span class="level-item tag">8</span>
             </span>
-        </a></li>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
             </ul>
         </div>
     </div>
@@ -306,7 +742,7 @@
         <h3 class="menu-label">
             标签云
         </h3>
-        <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 10px;">源码</a>
+        <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 10px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
     </div>
 </div>
     
@@ -321,18 +757,18 @@
         
         <article class="media">
             
-            <a href="/2019/12/26/markdown%E6%95%99%E7%A8%8B/" class="media-left">
+            <a href="/2019/12/28/LinkedList/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="markdown教程">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="LinkedList源码解析(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-26T12:13:56.000Z">2019-12-26</time></div>
-                    <a href="/2019/12/26/markdown%E6%95%99%E7%A8%8B/" class="title has-link-black-ter is-size-6 has-text-weight-normal">markdown教程</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-28T12:41:00.000Z">2019-12-28</time></div>
+                    <a href="/2019/12/28/LinkedList/" class="title has-link-black-ter is-size-6 has-text-weight-normal">LinkedList源码解析(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
                     </p>
                 </div>
             </div>
@@ -340,37 +776,75 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/" class="media-left">
+            <a href="/2019/12/25/ReentrantLock/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/cs.jpg" alt="测试图片">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ReentrantLock源码解析(jdk1.8)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/ReentrantLock/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ReentrantLock源码解析(jdk1.8)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/ConditionObject/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ConditionObject源码解析(jdk1.8)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/ConditionObject/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ConditionObject源码解析(jdk1.8)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/AbstractQueuedSynchronizer/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="AbstractQueuedSynchronizer源码解析(jdk1.8)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/AbstractQueuedSynchronizer/" class="title has-link-black-ter is-size-6 has-text-weight-normal">AbstractQueuedSynchronizer源码解析(jdk1.8)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/LinkedHashMap/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="LinkedHashMap源码解析(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/" class="title has-link-black-ter is-size-6 has-text-weight-normal">测试图片</a>
+                    <a href="/2019/12/25/LinkedHashMap/" class="title has-link-black-ter is-size-6 has-text-weight-normal">LinkedHashMap源码解析(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/12/22/yingu/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="sping源码分析">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-22T11:51:00.000Z">2019-12-22</time></div>
-                    <a href="/2019/12/22/yingu/" class="title has-link-black-ter is-size-6 has-text-weight-normal">sping源码分析</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
                     </p>
                 </div>
             </div>
@@ -393,7 +867,7 @@
                     <span class="level-item">十二月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">3</span>
+                    <span class="level-item tag">8</span>
                 </span>
             </a>
         </li>
@@ -412,23 +886,30 @@
             <div class="field is-grouped is-grouped-multiline">
                 
                 <div class="control">
-                    <a class="tags has-addons" href="/tags/spring/">
-                        <span class="tag">spring</span>
-                        <span class="tag is-grey">1</span>
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">8</span>
                     </a>
                 </div>
                 
                 <div class="control">
-                    <a class="tags has-addons" href="/tags/%E6%B5%8B%E8%AF%95/">
-                        <span class="tag">测试</span>
-                        <span class="tag is-grey">1</span>
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">4</span>
                     </a>
                 </div>
                 
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
                         <span class="tag">源码</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
                     </a>
                 </div>
                 
@@ -456,18 +937,18 @@
         
         <article class="media">
             
-            <a href="/2019/12/26/markdown%E6%95%99%E7%A8%8B/" class="media-left">
+            <a href="/2019/12/28/LinkedList/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="markdown教程">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="LinkedList源码解析(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-26T12:13:56.000Z">2019-12-26</time></div>
-                    <a href="/2019/12/26/markdown%E6%95%99%E7%A8%8B/" class="title has-link-black-ter is-size-6 has-text-weight-normal">markdown教程</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-28T12:41:00.000Z">2019-12-28</time></div>
+                    <a href="/2019/12/28/LinkedList/" class="title has-link-black-ter is-size-6 has-text-weight-normal">LinkedList源码解析(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
                     </p>
                 </div>
             </div>
@@ -475,37 +956,75 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/" class="media-left">
+            <a href="/2019/12/25/ReentrantLock/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/cs.jpg" alt="测试图片">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ReentrantLock源码解析(jdk1.8)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/ReentrantLock/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ReentrantLock源码解析(jdk1.8)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/ConditionObject/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ConditionObject源码解析(jdk1.8)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/ConditionObject/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ConditionObject源码解析(jdk1.8)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/AbstractQueuedSynchronizer/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="AbstractQueuedSynchronizer源码解析(jdk1.8)">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/AbstractQueuedSynchronizer/" class="title has-link-black-ter is-size-6 has-text-weight-normal">AbstractQueuedSynchronizer源码解析(jdk1.8)</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/LinkedHashMap/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="LinkedHashMap源码解析(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/%E6%B5%8B%E8%AF%95%E5%9B%BE%E7%89%87/" class="title has-link-black-ter is-size-6 has-text-weight-normal">测试图片</a>
+                    <a href="/2019/12/25/LinkedHashMap/" class="title has-link-black-ter is-size-6 has-text-weight-normal">LinkedHashMap源码解析(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
-            <a href="/2019/12/22/yingu/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="sping源码分析">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-22T11:51:00.000Z">2019-12-22</time></div>
-                    <a href="/2019/12/22/yingu/" class="title has-link-black-ter is-size-6 has-text-weight-normal">sping源码分析</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
                     </p>
                 </div>
             </div>
@@ -528,7 +1047,7 @@
                     <span class="level-item">十二月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">3</span>
+                    <span class="level-item tag">8</span>
                 </span>
             </a>
         </li>
@@ -547,23 +1066,30 @@
             <div class="field is-grouped is-grouped-multiline">
                 
                 <div class="control">
-                    <a class="tags has-addons" href="/tags/spring/">
-                        <span class="tag">spring</span>
-                        <span class="tag is-grey">1</span>
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">8</span>
                     </a>
                 </div>
                 
                 <div class="control">
-                    <a class="tags has-addons" href="/tags/%E6%B5%8B%E8%AF%95/">
-                        <span class="tag">测试</span>
-                        <span class="tag is-grey">1</span>
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">4</span>
                     </a>
                 </div>
                 
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
                         <span class="tag">源码</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
                     </a>
                 </div>
                 
@@ -584,11 +1110,12 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.png" alt="yingu的博客" height="28">
+                    <br>
+                    <img src="/images/logo.png" alt="yingu的博客" height="20">
                 
                 </a>
                 <p class="is-size-7">
-                &copy; 2019 yingu&nbsp;
+                &copy; 2020 yingu&nbsp;
                 Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
                         href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
                 
@@ -608,7 +1135,7 @@
 <script>
 var IcarusThemeSettings = {
     site: {
-        url: 'http://yoursite.com',
+        url: 'https://yingu.site',
         external_link: {"enable":true,"exclude":[]}
     },
     article: {
