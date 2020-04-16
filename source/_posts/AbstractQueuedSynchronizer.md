@@ -22,7 +22,7 @@ date: 2019-12-25 20:41:01
 
 ## 概述
 
-`AQS(AbstractQueuedSynchronizer)`以`CLH`锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的`ReentrantLock`、`Semaphore`、`CountDownLatch`等就是基于`AQS`实现的。`AQS`定义两种资源共享方式：`Exclusive`（独占，只有一个线程能执行，如`ReentrantLock`）和`Share`（共享，多个线程可同时执行，如`Semaphore/CountDownLatch`）。
+`AQS(AbstractQueuedSynchronizer)`以`CLH`锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。我们熟知的`ReentrantLock`、`Semaphore`、`CountDownLatch`等就是基于`AQS`实现的。`AQS`定义两种资源共享方式：`Exclusive`（独占，只有一个线程能执行，如`ReentrantLock`）和`Share`（共享，多个线程可同时执行，如`Semaphore/CountDownLatch`）。<!--more--> 
 
 > CLH锁是一种基于链表的可扩展、高性能、公平的自旋锁，申请线程只在本地变量上自旋，它不断轮询前驱的状态，如果发现前驱释放了锁就结束自旋。
 

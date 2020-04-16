@@ -22,7 +22,7 @@ date: 2019-12-25 20:41:00
 
 ## 概述
 
-`HashMap`基于哈希算法实现，用于存储 key-value 键值对的数据结构，底层由数组+链表+红黑树(**jdk_1.8新增**)组成。`HashMap`相比于之前介绍的的`ArrayList`与`linkedList`结构要复杂得多。`ArrayList`底层由数据组成，查找容易，插入、删除的效率不高。`linkedList`由链表组成，插入、删除容易、查询的效率不高。而基于散列表的HashMap，在保证高效查询的情况下，还能保证插入、删除的效率。HashMap允许使用null值和null键，HashMap非线程安全。
+`HashMap`基于哈希算法实现，用于存储 key-value 键值对的数据结构，底层由数组+链表+红黑树(**jdk_1.8新增**)组成。`HashMap`相比于之前介绍的的`ArrayList`与`linkedList`结构要复杂得多。`ArrayList`底层由数据组成，查找容易，插入、删除的效率不高。`linkedList`由链表组成，插入、删除容易、查询的效率不高。而基于散列表的HashMap，在保证高效查询的情况下，还能保证插入、删除的效率。HashMap允许使用null值和null键，HashMap非线程安全。<!--more--> 
 
 ## 结构特点
 

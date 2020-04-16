@@ -22,7 +22,7 @@ date: 2019-12-25 20:41:00
 
 ## 概述
 
-`LinkedHashMap`是`Map` 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于`LinkedHashMap`中很多方法直接继承自HashMap，因此在看本章之前，建议先看看[HashMap的源码解析](https://www.yingu.site/2019/12/25/HashMap/)。
+`LinkedHashMap`是`Map` 接口的哈希表和链接列表实现，具有可预知的迭代顺序。此实现提供所有可选的映射操作，并允许使用null值和null键。由于`LinkedHashMap`中很多方法直接继承自HashMap，因此在看本章之前，建议先看看[HashMap的源码解析](https://www.yingu.site/2019/12/25/HashMap/)。<!--more--> 
 
 ## 结构特点
 

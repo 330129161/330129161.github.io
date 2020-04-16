@@ -23,7 +23,7 @@ date: 2019-12-25 20:41:00
 
 ## 概述
 
-`ConcurrentHashMap`是`HashMap`线程安全的版本。jdk1.8以前`ConcurrentHashMap`采用`Segment`分段锁技术，`Segment`继承自`ReentrantLock`，通过对`Segment`加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用`CAS+synchronized`,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于`HashTable`中，锁定整个`HashTable`对象的方式，`ConcurrentHash`的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。
+`ConcurrentHashMap`是`HashMap`线程安全的版本。jdk1.8以前`ConcurrentHashMap`采用`Segment`分段锁技术，`Segment`继承自`ReentrantLock`，通过对`Segment`加锁实现并发操作。而jdk1.8中抛弃了分段锁，使用`CAS+synchronized`,通过锁定桶中的头节点，使用cas自旋的方式，进行并发操作。好处在于，通过锁定node节点减少锁的粒度，提高并发效率。相较于`HashTable`中，锁定整个`HashTable`对象的方式，`ConcurrentHash`的优势就很明显了。也正是由于降低了锁的粒度，使得代码的实现变得更加的复杂。<!--more--> 
 
 ## 结构特点
 
