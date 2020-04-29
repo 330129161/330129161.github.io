@@ -10,16 +10,16 @@
 <title>ReentrantReadWriteLock源码解析(jdk1.8) - yingu的博客</title>
 
 
-    <meta name="description" content="概述ReentrantReadWriteLock基于AQS实现的读写锁，写锁使用排他锁实现，读锁使用共享锁实现。 结构特点 ReentrantReadWriteLock继承自ReadWriteLock，读锁使用共享锁，写锁使用排它锁 ReentrantReadWriteLock实现了 Serializable 接口， 表示 ReentrantReadWriteLock支持序列化的功能 ，可用于网络">
+    <meta name="description" content="概述ReentrantReadWriteLock基于AQS实现的读写锁，写锁和读锁分别使用排他锁、共享锁实现。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ReentrantReadWriteLock源码解析(jdk1.8)">
 <meta property="og:url" content="https://yingu.site/2019/12/25/ReentrantReadWriteLock/index.html">
 <meta property="og:site_name" content="yingu的博客">
-<meta property="og:description" content="概述ReentrantReadWriteLock基于AQS实现的读写锁，写锁使用排他锁实现，读锁使用共享锁实现。 结构特点 ReentrantReadWriteLock继承自ReadWriteLock，读锁使用共享锁，写锁使用排它锁 ReentrantReadWriteLock实现了 Serializable 接口， 表示 ReentrantReadWriteLock支持序列化的功能 ，可用于网络">
+<meta property="og:description" content="概述ReentrantReadWriteLock基于AQS实现的读写锁，写锁和读锁分别使用排他锁、共享锁实现。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2019-12-25T12:41:01.000Z">
-<meta property="article:modified_time" content="2020-04-28T13:15:51.924Z">
+<meta property="article:modified_time" content="2020-04-29T12:31:07.323Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
@@ -142,7 +142,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    35 分钟 读完 (大约 5176 个字)
+                    38 分钟 读完 (大约 5721 个字)
                 </span>
                 
                 
@@ -155,7 +155,7 @@
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ReentrantReadWriteLock</code>基于AQS实现的读写锁，写锁使用排他锁实现，读锁使用共享锁实现。</p>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ReentrantReadWriteLock</code>基于AQS实现的读写锁，写锁和读锁分别使用排他锁、共享锁实现。<a id="more"></a>读写锁允许同一时刻被多个读线程访问，但是在写线程访问时，所有的读线程和其他锁线程都会被阻塞。读锁或者写锁，都可以重入。并且写锁支持锁降级，也就是获取写锁的线程，可以同时获取读锁。</p>
 <h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><ol>
 <li><code>ReentrantReadWriteLock</code>继承自<code>ReadWriteLock</code>，读锁使用共享锁，写锁使用排它锁</li>
 <li><code>ReentrantReadWriteLock</code>实现了 <code>Serializable</code> 接口， 表示 <code>ReentrantReadWriteLock</code>支持序列化的功能 ，可用于网络传输。</li>
@@ -174,7 +174,7 @@
 <h3 id="ReadLock内部类-1"><a href="#ReadLock内部类-1" class="headerlink" title="ReadLock内部类"></a>ReadLock内部类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">WriteLock</span> <span class="keyword">implements</span> <span class="title">Lock</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Sync sync;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">WriteLock</span><span class="params">(ReentrantReadWriteLock lock)</span> </span>&#123;</span><br><span class="line">        sync = lock.sync;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取写锁</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        sync.acquire(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取写锁，响应中断</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lockInterruptibly</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        sync.acquireInterruptibly(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//尝试获取锁</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">( )</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sync.tryWriteLock();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//尝试获取超时锁</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sync.tryAcquireNanos(<span class="number">1</span>, unit.toNanos(timeout));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//释放锁</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unlock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        sync.release(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建等待队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Condition <span class="title">newCondition</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sync.newCondition();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Thread o = sync.getOwner();</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.toString() + ((o == <span class="keyword">null</span>) ?</span><br><span class="line">                                   <span class="string">"[Unlocked]"</span> :</span><br><span class="line">                                   <span class="string">"[Locked by thread "</span> + o.getName() + <span class="string">"]"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//判断当前线程是否是该锁的持有者</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isHeldByCurrentThread</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sync.isHeldExclusively();</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">//获取写锁的重入数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getHoldCount</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> sync.getWriteHoldCount();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>介绍完<code>ReentrantReadWriteLock</code>中几个内部类，也就没啥方法了。<code>ReentrantReadWriteLock</code>获取写锁部分的代码还比较简单。基本上跟之前解析的重入锁<code>ReentrantLock</code>没多大区别。关键在于读锁的部分，引入了计数器、锁降级部分，逻辑上要复杂那么一点。下面简单做一个总结</p>
-<p>获取写锁</p>
+<p><strong>获取写锁</strong></p>
 <ol>
 <li><code>WriteLock</code>通过<code>lock()</code>方法调用获取写锁后，会调用<code>sync.acquire(1)</code>获取锁方法。<code>sync</code>继承自<code>AQS</code>，该方法在<code>AQS</code>中用于获取锁，<code>AQS</code>通过调用模板方法<code>tryAcquire()</code>又回到本类中。看过前面<code>ReentrantLock</code>解析的，这里应该比较熟悉了。</li>
 <li><code>tryAcquire()</code>方法，尝试获取锁。通过<code>exclusiveCount(c)</code>方法，获取写锁的数量(获取低16位，也就是写锁的重入数)，如果从c != 0说明写锁存在，判断持有写锁的是否为当前线程，如果是，则表示重入，那么写锁重入数+1，返回true，获取锁成功。如果不是当前线程持有的锁，直接返回false，获取锁失败。</li>
@@ -183,14 +183,14 @@
 <li>公平情况下，会通过<code>FairSync</code>的方法最终调用<code>hasQueuedPredecessors</code>，判断当前同步队列是否存在节点。如果存在，说明前面有其他获取锁线程在等待，那么获取锁失败。如果同步队列中没有节点，那么跟上面一样，修改锁状态，看是否获取锁成功。</li>
 <li>上面使用<code>tryAcquire</code>方法获取锁，如果成功，那么<code>WriteLock</code>的<code>lock()</code>方法直接返回。如果失败，那么<code>AQS</code>的acquire方法中，会调用<code>addWaiter(Node.EXCLUSIVE), arg)</code>方法，生成一个记录当前线程的节点，并加入到同步队列的末尾。最后通过<code>acquireQueued</code>方法，以自旋的方式，获取锁，直到获取锁成功。或者线程被中断。</li>
 </ol>
-<p>释放写锁</p>
+<p><strong>释放写锁</strong></p>
 <ol>
 <li><code>WriteLock</code>通过<code>lock()</code>方法释放写锁，会调用<code>sync.release(1)</code>方法。跟上面获取锁一样。该方法也在<code>AQS</code>中，<code>release()</code>会调用模板方法<code>tryRelease(arg)</code>释放锁。</li>
 <li><code>tryRelease</code>方法会通过<code>isHeldExclusively</code>判断，当前线程是否为持有锁的线程。如果不是抛出IllegalMonitorStateException。</li>
 <li>判断<code>boolean free = exclusiveCount(nextc) == 0</code>，判断是否释放了所有的重入锁。如果是，设置持有写锁的持有者为null。设置新的state，返回free 。</li>
 <li>如果第3步返回true,也就是释放所有的重入锁。那么判断同步队列头节点不为null，且状态是否为-1(表示后驱节点需要被唤醒，不了解的可以去看一下前面关于 AQS的解析)，那么通过<code>unparkSuccessor</code>唤醒后驱节点，返回true。</li>
 </ol>
-<p>获取读锁</p>
+<p><strong>获取读锁</strong></p>
 <ol>
 <li><code>ReadLock</code>通过<code>lock()</code>方法获取读锁，会调用<code>sync.acquireShared(1)</code>。通过<code>tryAcquireShared</code>尝试获取共享锁，<code>exclusiveCount(c) != 0</code> ，判断当前是否存在独占锁(写锁)，如果存在，并且通过<code>getExclusiveOwnerThread() != current</code>判断，持有写锁的不是当前线程。会直接返回-1，表示尝试获取锁失败。</li>
 <li>如果当前不存在写锁，或者写锁的持有者是当前线程。那么通过<code>sharedCount(c)</code>获取读锁的数量(将state的高16位向右移16位，获取读锁的数量)。随后，通过<code>!readerShouldBlock()</code>判断，读锁是否需要阻塞。</li>
@@ -205,6 +205,15 @@
 <li>通过判断写锁的持有者是否为当前线程，就是锁降级的体现。说明如果当前线程持有写锁，那么也能获取到读锁。</li>
 <li>下面的逻辑基本上跟<code>tryAcquireShared</code>中方法一致，获取锁失败后会返回-1。最后<code>sync.acquireShared</code>在<code>tryAcquireShared</code>返回-1后，会通过<code>doAcquireShared(arg)</code>方法生成一个记录当前线程的共享节点，并加入到同步队列中，等待被唤醒。</li>
 <li>设想一下，如果没有第11步的判断直接返回-1，那么该线程获取读锁被阻塞之后，原来的写锁就没法释放，就会产生死锁。</li>
+</ol>
+<p><strong>释放读锁</strong></p>
+<ol>
+<li><code>ReadLock</code>通过<code>unlock()</code>方法释放写锁。会调用<code>sync.releaseShared(1)</code>方法，通过<code>tryReleaseShared(arg)</code>方法尝试释放写锁。</li>
+<li><code>tryReleaseShared(arg)</code>首先通过<code>firstReader == current</code>判断，当前线程是否为第一个获取锁的线程，如果是，判断<code>firstReaderHoldCount == 1</code>，如果相等，说明当前锁数量只有一个，那么直接将<code>firstReaderHoldCount</code> 置为null。否则<code>firstReaderHoldCount</code> 数 -1.</li>
+<li>如果不是，判断<code>cachedHoldCounter</code>是否存在，如果不存在，或者<code>cachedHoldCounter</code>不是当前线程的计数器，那么获取当前线程的计数器。判断计数器中count&lt;=1，如果是，那么通过<code>readHolds.remove()</code>移除当前线程的计数器。如果count &lt;= 0，说明当前不存在线程不存在写锁，抛出unmatchedUnlockException。最后计数器count–。</li>
+<li>上面这些步骤，最终的操作只是将计数器的count-1，表示记录的读锁数-1。而真正释放锁的操作是通过cas修改state的值来实现的。毕竟当前是否存在读锁，还是通过state的值来判断的。</li>
+<li>for死循环自旋，保证读锁最终能被释放。<code>int nextc = c - SHARED_UNIT</code>，高16位相当于-1操作，也就是将读锁数-1了。通过cas修改state的值，修改成功，判断是否已经释放完了所有的读锁，如果是返回true，如果不是返回false。cas修改失败，进入下一次自旋，保证最终释放锁成功。</li>
+<li>如果<code>tryReleaseShared</code>最终返回了true，也就是释放了所有的写锁，那么<code>sync.releaseShared(1)</code>方法会通过<code>doReleaseShared()</code>，释放后继节点中的共享节点，也就是共享节点传播性的一个体现。</li>
 </ol>
 
         </div>
