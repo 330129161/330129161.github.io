@@ -22,7 +22,7 @@ date: 2019-12-25 20:41:01
 
 ## 概述
 
-`ReentrantReadWriteLock`基于AQS实现的读写锁，写锁使用排他锁实现，读锁使用共享锁实现。
+`ReentrantReadWriteLock`基于AQS实现的读写锁，写锁和读锁分别使用排他锁、共享锁实现。<!-- more -->读写锁允许同一时刻被多个读线程访问，但是在写线程访问时，所有的读线程和其他锁线程都会被阻塞。读锁或者写锁，都可以重入。并且写锁支持锁降级，也就是获取写锁的线程，可以同时获取读锁。
 
 ## 结构特点
 
@@ -616,7 +616,7 @@ public static class WriteLock implements Lock, java.io.Serializable {
 
 介绍完`ReentrantReadWriteLock`中几个内部类，也就没啥方法了。`ReentrantReadWriteLock`获取写锁部分的代码还比较简单。基本上跟之前解析的重入锁`ReentrantLock`没多大区别。关键在于读锁的部分，引入了计数器、锁降级部分，逻辑上要复杂那么一点。下面简单做一个总结
 
-获取写锁
+**获取写锁**
 
 1. `WriteLock`通过`lock()`方法调用获取写锁后，会调用`sync.acquire(1)`获取锁方法。`sync`继承自`AQS`，该方法在`AQS`中用于获取锁，`AQS`通过调用模板方法`tryAcquire()`又回到本类中。看过前面`ReentrantLock`解析的，这里应该比较熟悉了。
 2. `tryAcquire()`方法，尝试获取锁。通过`exclusiveCount(c)`方法，获取写锁的数量(获取低16位，也就是写锁的重入数)，如果从c != 0说明写锁存在，判断持有写锁的是否为当前线程，如果是，则表示重入，那么写锁重入数+1，返回true，获取锁成功。如果不是当前线程持有的锁，直接返回false，获取锁失败。
@@ -625,14 +625,14 @@ public static class WriteLock implements Lock, java.io.Serializable {
 5. 公平情况下，会通过`FairSync`的方法最终调用`hasQueuedPredecessors`，判断当前同步队列是否存在节点。如果存在，说明前面有其他获取锁线程在等待，那么获取锁失败。如果同步队列中没有节点，那么跟上面一样，修改锁状态，看是否获取锁成功。
 6. 上面使用`tryAcquire`方法获取锁，如果成功，那么`WriteLock`的`lock()`方法直接返回。如果失败，那么`AQS`的acquire方法中，会调用`addWaiter(Node.EXCLUSIVE), arg)`方法，生成一个记录当前线程的节点，并加入到同步队列的末尾。最后通过`acquireQueued`方法，以自旋的方式，获取锁，直到获取锁成功。或者线程被中断。
 
-释放写锁
+**释放写锁**
 
 1. `WriteLock`通过`lock()`方法释放写锁，会调用`sync.release(1)`方法。跟上面获取锁一样。该方法也在`AQS`中，`release()`会调用模板方法`tryRelease(arg)`释放锁。
 2. `tryRelease`方法会通过`isHeldExclusively`判断，当前线程是否为持有锁的线程。如果不是抛出IllegalMonitorStateException。
 3. 判断`boolean free = exclusiveCount(nextc) == 0`，判断是否释放了所有的重入锁。如果是，设置持有写锁的持有者为null。设置新的state，返回free 。
 4. 如果第3步返回true,也就是释放所有的重入锁。那么判断同步队列头节点不为null，且状态是否为-1(表示后驱节点需要被唤醒，不了解的可以去看一下前面关于 AQS的解析)，那么通过`unparkSuccessor`唤醒后驱节点，返回true。
 
-获取读锁
+**获取读锁**
 
 1. `ReadLock`通过`lock()`方法获取读锁，会调用`sync.acquireShared(1)`。通过`tryAcquireShared`尝试获取共享锁，`exclusiveCount(c) != 0` ，判断当前是否存在独占锁(写锁)，如果存在，并且通过`getExclusiveOwnerThread() != current`判断，持有写锁的不是当前线程。会直接返回-1，表示尝试获取锁失败。
 2. 如果当前不存在写锁，或者写锁的持有者是当前线程。那么通过`sharedCount(c)`获取读锁的数量(将state的高16位向右移16位，获取读锁的数量)。随后，通过`!readerShouldBlock()`判断，读锁是否需要阻塞。
@@ -648,3 +648,11 @@ public static class WriteLock implements Lock, java.io.Serializable {
 12. 下面的逻辑基本上跟`tryAcquireShared`中方法一致，获取锁失败后会返回-1。最后`sync.acquireShared`在`tryAcquireShared`返回-1后，会通过`doAcquireShared(arg)`方法生成一个记录当前线程的共享节点，并加入到同步队列中，等待被唤醒。
 13. 设想一下，如果没有第11步的判断直接返回-1，那么该线程获取读锁被阻塞之后，原来的写锁就没法释放，就会产生死锁。
 
+**释放读锁**
+
+1. `ReadLock`通过`unlock()`方法释放写锁。会调用`sync.releaseShared(1)`方法，通过`tryReleaseShared(arg)`方法尝试释放写锁。
+2. `tryReleaseShared(arg)`首先通过`firstReader == current`判断，当前线程是否为第一个获取锁的线程，如果是，判断`firstReaderHoldCount == 1`，如果相等，说明当前锁数量只有一个，那么直接将`firstReaderHoldCount` 置为null。否则`firstReaderHoldCount` 数 -1.
+3. 如果不是，判断`cachedHoldCounter`是否存在，如果不存在，或者`cachedHoldCounter`不是当前线程的计数器，那么获取当前线程的计数器。判断计数器中count<=1，如果是，那么通过`readHolds.remove()`移除当前线程的计数器。如果count <= 0，说明当前不存在线程不存在写锁，抛出unmatchedUnlockException。最后计数器count--。
+4. 上面这些步骤，最终的操作只是将计数器的count-1，表示记录的读锁数-1。而真正释放锁的操作是通过cas修改state的值来实现的。毕竟当前是否存在读锁，还是通过state的值来判断的。
+5. for死循环自旋，保证读锁最终能被释放。`int nextc = c - SHARED_UNIT`，高16位相当于-1操作，也就是将读锁数-1了。通过cas修改state的值，修改成功，判断是否已经释放完了所有的读锁，如果是返回true，如果不是返回false。cas修改失败，进入下一次自旋，保证最终释放锁成功。
+6. 如果`tryReleaseShared`最终返回了true，也就是释放了所有的写锁，那么`sync.releaseShared(1)`方法会通过`doReleaseShared()`，释放后继节点中的共享节点，也就是共享节点传播性的一个体现。
