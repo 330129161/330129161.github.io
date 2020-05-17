@@ -7,12 +7,12 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-<title>标签: 集合 - yingu的博客</title>
+<title>分类: 垃圾回收 - yingu的博客</title>
 
 
     <meta property="og:type" content="website">
 <meta property="og:title" content="yingu的博客">
-<meta property="og:url" content="https://yingu.site/tags/%E9%9B%86%E5%90%88/index.html">
+<meta property="og:url" content="https://yingu.site/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/index.html">
 <meta property="og:site_name" content="yingu的博客">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://yingu.site/images/og_image.png">
@@ -118,8 +118,11 @@
     <div class="card-content">
         <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
-            <li><a href="/tags">标签</a></li>
-            <li class="is-active"><a href="#" aria-current="page">集合</a></li>
+            <li><a href="/categories">分类</a></li>
+            
+            <li><a href="/categories/jvm/">jvm</a></li>
+            
+            <li class="is-active"><a href="#" aria-current="page">垃圾回收</a></li>
         </ul>
         </nav>
     </div>
@@ -132,17 +135,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-28T12:41:00.000Z">2019-12-28</time>
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    33 分钟 读完 (大约 4969 个字)
+                    3 分钟 读完 (大约 515 个字)
                 </span>
                 
                 
@@ -151,22 +154,22 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/28/LinkedList/">LinkedList源码解析(jdk1.8)</a>
+                <a class="has-link-black-ter" href="/2019/12/25/jvm-2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/">【深入理解java虚拟机】-- 2.垃圾收集器与内存分配策略</a>
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>跟<a href="https://www.yingu.site/2019/12/25/ArrayList/">ArrayList</a>一样，<code>LinkedList</code>也是<code>List</code>的实现类。不过<code>ArrayList</code>是基于数组实现的，而<code>LinkedList</code>是基于链表实现的。
+            <blockquote>
+<p>本系列内容，大量引用自《<a href="https://book.douban.com/subject/6522893/">深入理解java虚拟机</a>》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。</p>
+</blockquote>
+<h2 id="对象是否存活"><a href="#对象是否存活" class="headerlink" title="对象是否存活"></a>对象是否存活</h2><p>在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。</p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>给对象中添加一个引用计数器，每当有一个地方引用它时，计时器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象，就是不可能再被使用的。这种方式虽然实现简单、效率也很高，但是主流的java虚拟机里面没有选用引用计数法来管理内存，其中最主要的原因是它很难解决对象之间相互循环引用的问题。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Object q1 = <span class="keyword">new</span> GcObject(); <span class="comment">//实例1，引用数+1</span></span><br><span class="line">Object q2 = <span class="keyword">new</span> GcObject(); <span class="comment">//实例2，引用数+1</span></span><br><span class="line"></span><br><span class="line">q1.instance = q2; <span class="comment">//将实例1中的instance熟悉指向实例2，实例2，引用数+1</span></span><br><span class="line">q2.instance = q1; <span class="comment">//将实例2中的instance熟悉指向实例1，实例1，引用数+1</span></span><br><span class="line"></span><br><span class="line">q1 = <span class="keyword">null</span>; <span class="comment">//实例1，引用数-1</span></span><br><span class="line">q2 = <span class="keyword">null</span>; <span class="comment">//实例2，引用数-1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//垃圾回收后，实例1，实例2还存在堆中，不会被回收</span></span><br><span class="line">System.gc();</span><br></pre></td></tr></table></figure>
+
+<p>上面代表就描述了，引用计数器在实际使用中会出现的一个循环引用的问题。对象没有被其他地方应用，但是计数器值不为0，此时实例1、2无法被回收。</p>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><h3 id="再谈引用"><a href="#再谈引用" class="headerlink" title="再谈引用"></a>再谈引用</h3><h3 id="生存还是死亡"><a href="#生存还是死亡" class="headerlink" title="生存还是死亡"></a>生存还是死亡</h3><h3 id="回收方法区"><a href="#回收方法区" class="headerlink" title="回收方法区"></a>回收方法区</h3><h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2><h2 id="hptspot的算法实现"><a href="#hptspot的算法实现" class="headerlink" title="hptspot的算法实现"></a>hptspot的算法实现</h2><h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><h2 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="内存分配与回收策略"></a>内存分配与回收策略</h2>
         </div>
         
         
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/28/LinkedList/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
         
         
     </div>
@@ -188,17 +191,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    9 分钟 读完 (大约 1424 个字)
+                    1 小时 读完 (大约 8563 个字)
                 </span>
                 
                 
@@ -207,11 +210,14 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/25/LinkedHashMap/">LinkedHashMap源码解析(jdk1.8)</a>
+                <a class="has-link-black-ter" href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/">【深入理解java虚拟机】-- 垃圾收集器与内存分配策略</a>
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>LinkedHashMap</code>是<code>Map</code> 接口的哈希表和链接列表实现，具有可预知的迭代顺序。
+            <blockquote>
+<p>本系列内容，大量引用自《<a href="https://book.douban.com/subject/6522893/">深入理解java虚拟机</a>》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。</p>
+</blockquote>
+<h2 id="对象是否存活"><a href="#对象是否存活" class="headerlink" title="对象是否存活"></a>对象是否存活</h2><p>​        在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。
         </div>
         
         
@@ -219,175 +225,7 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/LinkedHashMap/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-    
-<div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    36 分钟 读完 (大约 5325 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/12/25/ArrayList/">ArrayList源码解析(jdk1.8)</a>
-            
-        </h1>
-        <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。
-        </div>
-        
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/ArrayList/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-    
-<div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    35 分钟 读完 (大约 5256 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/12/25/HashMap/">HashMap源码解析(jdk1.8)</a>
-            
-        </h1>
-        <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>HashMap</code>基于哈希算法实现，用于存储 key-value 键值对的数据结构，底层由数组+链表+红黑树(<strong>jdk_1.8新增</strong>)组成。<code>HashMap</code>相比于之前介绍的的<code>ArrayList</code>与<code>linkedList</code>结构要复杂得多。
-        </div>
-        
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/HashMap/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-    
-<div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    1 小时 读完 (大约 8126 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/12/25/ConcurrentHashMap/">ConcurrentHashMap源码解析(jdk1.8)</a>
-            
-        </h1>
-        <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConcurrentHashMap</code>是<code>HashMap</code>线程安全的版本。jdk1.8以前<code>ConcurrentHashMap</code>采用<code>Segment</code>分段锁技术，<code>Segment</code>继承自<code>ReentrantLock</code>，通过对<code>Segment</code>加锁实现并发操作。
-        </div>
-        
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/ConcurrentHashMap/#more">阅读更多</a>
+                <a class="button is-size-7 is-light" href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/#more">阅读更多</a>
                 </div>
             </div>
         </div>

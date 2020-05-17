@@ -181,14 +181,14 @@
                 <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%86%85%E5%AD%98/">内存</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    29 分钟 读完 (大约 4300 个字)
+                    34 分钟 读完 (大约 5066 个字)
                 </span>
                 
                 
@@ -197,11 +197,17 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/25/ConditionObject/">ConditionObject源码解析(jdk1.8)</a>
+                <a class="has-link-black-ter" href="/2019/12/25/jvm-1/">【深入理解java虚拟机】-- 1.自动内存管理机制</a>
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。
+            <blockquote>
+<p>本系列内容，大量引用自《<a href="https://book.douban.com/subject/6522893/">深入理解java虚拟机</a>》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。</p>
+</blockquote>
+<h2 id="java内存区域与内存溢出异常"><a href="#java内存区域与内存溢出异常" class="headerlink" title="java内存区域与内存溢出异常"></a>java内存区域与内存溢出异常</h2><h3 id="运行时数据区域"><a href="#运行时数据区域" class="headerlink" title="运行时数据区域"></a>运行时数据区域</h3><blockquote>
+<p>java虚拟机在执行java程序的过程中会把它所管理的内存划分为若干个不同的数据区域。这些区域都有各自的用途，以及创建和销毁时间，有的区域随着虚拟机的进程的启动而存在，有的预取则依赖用户线程的启动和结束而销毁。</p>
+</blockquote>
+<p>​        Java虚拟机所管理的内存包括以下几个运行时数据区域：（下图中图形大小，不代表实际大小比例，只表示相对关系）
         </div>
         
         
@@ -209,7 +215,7 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/ConditionObject/#more">阅读更多</a>
+                <a class="button is-size-7 is-light" href="/2019/12/25/jvm-1/#more">阅读更多</a>
                 </div>
             </div>
         </div>
@@ -237,14 +243,14 @@
                 <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    38 分钟 读完 (大约 5721 个字)
+                    3 分钟 读完 (大约 515 个字)
                 </span>
                 
                 
@@ -253,11 +259,70 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/25/ReentrantReadWriteLock/">ReentrantReadWriteLock源码解析(jdk1.8)</a>
+                <a class="has-link-black-ter" href="/2019/12/25/jvm-2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/">【深入理解java虚拟机】-- 2.垃圾收集器与内存分配策略</a>
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ReentrantReadWriteLock</code>基于AQS实现的读写锁，写锁和读锁分别使用排他锁、共享锁实现。
+            <blockquote>
+<p>本系列内容，大量引用自《<a href="https://book.douban.com/subject/6522893/">深入理解java虚拟机</a>》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。</p>
+</blockquote>
+<h2 id="对象是否存活"><a href="#对象是否存活" class="headerlink" title="对象是否存活"></a>对象是否存活</h2><p>在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。</p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>给对象中添加一个引用计数器，每当有一个地方引用它时，计时器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象，就是不可能再被使用的。这种方式虽然实现简单、效率也很高，但是主流的java虚拟机里面没有选用引用计数法来管理内存，其中最主要的原因是它很难解决对象之间相互循环引用的问题。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Object q1 = <span class="keyword">new</span> GcObject(); <span class="comment">//实例1，引用数+1</span></span><br><span class="line">Object q2 = <span class="keyword">new</span> GcObject(); <span class="comment">//实例2，引用数+1</span></span><br><span class="line"></span><br><span class="line">q1.instance = q2; <span class="comment">//将实例1中的instance熟悉指向实例2，实例2，引用数+1</span></span><br><span class="line">q2.instance = q1; <span class="comment">//将实例2中的instance熟悉指向实例1，实例1，引用数+1</span></span><br><span class="line"></span><br><span class="line">q1 = <span class="keyword">null</span>; <span class="comment">//实例1，引用数-1</span></span><br><span class="line">q2 = <span class="keyword">null</span>; <span class="comment">//实例2，引用数-1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//垃圾回收后，实例1，实例2还存在堆中，不会被回收</span></span><br><span class="line">System.gc();</span><br></pre></td></tr></table></figure>
+
+<p>上面代表就描述了，引用计数器在实际使用中会出现的一个循环引用的问题。对象没有被其他地方应用，但是计数器值不为0，此时实例1、2无法被回收。</p>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><h3 id="再谈引用"><a href="#再谈引用" class="headerlink" title="再谈引用"></a>再谈引用</h3><h3 id="生存还是死亡"><a href="#生存还是死亡" class="headerlink" title="生存还是死亡"></a>生存还是死亡</h3><h3 id="回收方法区"><a href="#回收方法区" class="headerlink" title="回收方法区"></a>回收方法区</h3><h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2><h2 id="hptspot的算法实现"><a href="#hptspot的算法实现" class="headerlink" title="hptspot的算法实现"></a>hptspot的算法实现</h2><h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><h2 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="内存分配与回收策略"></a>内存分配与回收策略</h2>
+        </div>
+        
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    1 小时 读完 (大约 8563 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/">【深入理解java虚拟机】-- 垃圾收集器与内存分配策略</a>
+            
+        </h1>
+        <div class="content">
+            <blockquote>
+<p>本系列内容，大量引用自《<a href="https://book.douban.com/subject/6522893/">深入理解java虚拟机</a>》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。</p>
+</blockquote>
+<h2 id="对象是否存活"><a href="#对象是否存活" class="headerlink" title="对象是否存活"></a>对象是否存活</h2><p>​        在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。
         </div>
         
         
@@ -265,7 +330,7 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/ReentrantReadWriteLock/#more">阅读更多</a>
+                <a class="button is-size-7 is-light" href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/#more">阅读更多</a>
                 </div>
             </div>
         </div>
@@ -405,14 +470,14 @@
                 <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%86%85%E5%AD%98/">内存</a>
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    30 分钟 读完 (大约 4425 个字)
+                    29 分钟 读完 (大约 4300 个字)
                 </span>
                 
                 
@@ -421,7 +486,63 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/25/jvm-1/">【深入理解java虚拟机】-- 1.自动内存管理机制</a>
+                <a class="has-link-black-ter" href="/2019/12/25/ConditionObject/">ConditionObject源码解析(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/12/25/ConditionObject/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%86%85%E5%AD%98/">内存</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    31 分钟 读完 (大约 4690 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2019/12/25/jvm-1-%E8%87%AA%E5%8A%A8%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/">【深入理解java虚拟机】-- 1.自动内存管理机制</a>
             
         </h1>
         <div class="content">
@@ -439,119 +560,7 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/jvm-1/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-    
-<div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    几秒 读完 (大约 17 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/12/25/CountDownLatch/">CountDownLatch源码解析(jdk1.8)</a>
-            
-        </h1>
-        <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2>
-        </div>
-        
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/CountDownLatch/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-    
-<div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    37 分钟 读完 (大约 5575 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2019/12/25/AbstractQueuedSynchronizer/">AbstractQueuedSynchronizer源码解析(jdk1.8)</a>
-            
-        </h1>
-        <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。
-        </div>
-        
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/AbstractQueuedSynchronizer/#more">阅读更多</a>
+                <a class="button is-size-7 is-light" href="/2019/12/25/jvm-1-%E8%87%AA%E5%8A%A8%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/#more">阅读更多</a>
                 </div>
             </div>
         </div>
@@ -632,17 +641,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:00.000Z">2019-12-25</time>
+                <time class="level-item has-text-grey" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">集合</a>
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    36 分钟 读完 (大约 5325 个字)
+                    37 分钟 读完 (大约 5575 个字)
                 </span>
                 
                 
@@ -651,11 +660,11 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2019/12/25/ArrayList/">ArrayList源码解析(jdk1.8)</a>
+                <a class="has-link-black-ter" href="/2019/12/25/AbstractQueuedSynchronizer/">AbstractQueuedSynchronizer源码解析(jdk1.8)</a>
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p> <code>ArrayList</code>是我们日常开发中比较常见的一个容器类。它底层由动态数组实现， 所以和数组一样，可以根据索引对容器对象所包含的元素，进行快速随机的查询操作 。
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>AQS(AbstractQueuedSynchronizer)</code>以<code>CLH</code>锁为基础而设计，是并发编程中一个重要的框架类，用于构建锁和其他的同步组件。
         </div>
         
         
@@ -663,7 +672,7 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/12/25/ArrayList/#more">阅读更多</a>
+                <a class="button is-size-7 is-light" href="/2019/12/25/AbstractQueuedSynchronizer/#more">阅读更多</a>
                 </div>
             </div>
         </div>
@@ -745,7 +754,7 @@
                     </p>
                     <a href="/archives">
                         <p class="title has-text-weight-normal">
-                            13
+                            16
                         </p>
                     </a>
                 </div>
@@ -757,7 +766,7 @@
                     </p>
                     <a href="/categories">
                         <p class="title has-text-weight-normal">
-                            5
+                            6
                         </p>
                     </a>
                 </div>
@@ -845,7 +854,7 @@
                 <span class="level-item">jvm</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">1</span>
+                <span class="level-item tag">4</span>
             </span>
         </a><ul><li>
         <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
@@ -853,7 +862,15 @@
                 <span class="level-item">内存</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">1</span>
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
             </span>
         </a></li></ul></li><li>
         <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
@@ -890,7 +907,7 @@
         <h3 class="menu-label">
             标签云
         </h3>
-        <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 12.5px;">juc</a> <a href="/tags/jvm/" style="font-size: 10px;">jvm</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 17.5px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E9%94%81/" style="font-size: 12.5px;">锁</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+        <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 12px;">juc</a> <a href="/tags/jvm/" style="font-size: 14px;">jvm</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E9%94%81/" style="font-size: 12px;">锁</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 16px;">集合</a>
     </div>
 </div>
     
@@ -924,18 +941,18 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/ConditionObject/" class="media-left">
+            <a href="/2019/12/25/jvm-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ConditionObject源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 1.自动内存管理机制">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/ConditionObject/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ConditionObject源码解析(jdk1.8)</a>
+                    <a href="/2019/12/25/jvm-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 1.自动内存管理机制</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                        <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%86%85%E5%AD%98/">内存</a>
                     </p>
                 </div>
             </div>
@@ -943,18 +960,37 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/ReentrantReadWriteLock/" class="media-left">
+            <a href="/2019/12/25/jvm-2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ReentrantReadWriteLock源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 2.垃圾收集器与内存分配策略">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/ReentrantReadWriteLock/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ReentrantReadWriteLock源码解析(jdk1.8)</a>
+                    <a href="/2019/12/25/jvm-2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 2.垃圾收集器与内存分配策略</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                        <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 垃圾收集器与内存分配策略">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 垃圾收集器与内存分配策略</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
                     </p>
                 </div>
             </div>
@@ -979,25 +1015,6 @@
             </div>
         </article>
         
-        <article class="media">
-            
-            <a href="/2019/12/25/ReentrantLock/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ReentrantLock源码解析(jdk1.8)">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/ReentrantLock/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ReentrantLock源码解析(jdk1.8)</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
     </div>
 </div>
         
@@ -1015,7 +1032,7 @@
                     <span class="level-item">十二月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">13</span>
+                    <span class="level-item tag">16</span>
                 </span>
             </a>
         </li>
@@ -1050,14 +1067,14 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/jvm/">
                         <span class="tag">jvm</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">4</span>
                     </a>
                 </div>
                 
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
                         <span class="tag">内存</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">2</span>
                     </a>
                 </div>
                 
@@ -1132,18 +1149,18 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/ConditionObject/" class="media-left">
+            <a href="/2019/12/25/jvm-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ConditionObject源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 1.自动内存管理机制">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/ConditionObject/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ConditionObject源码解析(jdk1.8)</a>
+                    <a href="/2019/12/25/jvm-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 1.自动内存管理机制</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                        <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%86%85%E5%AD%98/">内存</a>
                     </p>
                 </div>
             </div>
@@ -1151,18 +1168,37 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/ReentrantReadWriteLock/" class="media-left">
+            <a href="/2019/12/25/jvm-2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ReentrantReadWriteLock源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 2.垃圾收集器与内存分配策略">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/ReentrantReadWriteLock/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ReentrantReadWriteLock源码解析(jdk1.8)</a>
+                    <a href="/2019/12/25/jvm-2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 2.垃圾收集器与内存分配策略</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                        <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 垃圾收集器与内存分配策略">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
+                    <a href="/2019/12/25/jvm-2-%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%AD%98%E6%B4%BB/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 垃圾收集器与内存分配策略</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
                     </p>
                 </div>
             </div>
@@ -1187,25 +1223,6 @@
             </div>
         </article>
         
-        <article class="media">
-            
-            <a href="/2019/12/25/ReentrantLock/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="ReentrantLock源码解析(jdk1.8)">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/ReentrantLock/" class="title has-link-black-ter is-size-6 has-text-weight-normal">ReentrantLock源码解析(jdk1.8)</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
     </div>
 </div>
     
@@ -1223,7 +1240,7 @@
                     <span class="level-item">十二月 2019</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">13</span>
+                    <span class="level-item tag">16</span>
                 </span>
             </a>
         </li>
@@ -1258,14 +1275,14 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/jvm/">
                         <span class="tag">jvm</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">4</span>
                     </a>
                 </div>
                 
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
                         <span class="tag">内存</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">2</span>
                     </a>
                 </div>
                 
