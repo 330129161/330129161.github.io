@@ -16,7 +16,7 @@ categories:
 
   - [源码,并发] 
 
-date: 2019-12-25 20:41:01
+date: 2019-07-26 21:32:54
 
 ---
 
@@ -29,7 +29,7 @@ date: 2019-12-25 20:41:01
 ## 结构特点
 
 1. 继承自`AbstractOwnableSynchronizer`，为创建锁和相关同步器提供了基础。
-2. `AQS`中还有一个`ConditionObject`内部类，提供了条件锁的同步实现，详见[ConditionObject源码解析](https://)。
+2. `AQS`中还有一个`ConditionObject`内部类，提供了条件锁的同步实现，详见[ConditionObject源码解析](https://www.yingu.site/2019/08/07/ConditionObject/)。
 
 ![AbstractQueuedSynchronizer结构图](http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/AbstractQueuedSynchronizer.png)
 
@@ -384,7 +384,7 @@ private void unparkSuccessor(Node node) {
     //如果后驱节点为null，或者被取消
     if (s == null || s.waitStatus > 0) {
         s = null;
-        //从当前node位置一直向后查找不为null且没有被取消的节点
+        //从当前同步队列的末尾向前查找，直到前驱节点为null或者node，并记录当前节点为s
         for (Node t = tail; t != null && t != node; t = t.prev)
             if (t.waitStatus <= 0)
                 s = t;
@@ -683,7 +683,7 @@ private void doReleaseShared() {
 1. 通过`release`方法释放锁，跟`acquire`一样，主要释放锁的操作在`tryRelease`方法中，留给子类实现的。
 2. `release`成功返回后，会通过`unparkSuccessor`唤醒下一个节点
 3. `unparkSuccessor`如果当前节点`waitStatus`< 0,会将当前节点的`waitStatus`设置为0，如果失败说明当前节点被取消了
-4. 记录下一个节点s,如果s存在并且`s.waitStatus > 0`节点没有被取消，那么通过`LockSupport.unpark`释放s的线程(节点释放后，上面获取锁第6步会往下执行)，如果是共享锁，释放锁后，会执行上面获取锁第2步中的操作，将锁传递给下一个共享节点
+4. 记录下一个节点s,如果s不存在或者`waitStatus`>0b被取消，那么从同步队列尾端向头查找，直到找到s节点，记录最后一个正常的节点为s(也就是要释放的节点)，那么通过`LockSupport.unpark`释放s的线程(节点释放后，上面获取锁第6步会往下执行)，如果是共享锁，释放锁后，会执行上面获取锁第2步中的操作，将锁传递给下一个共享节点
 
 AQS中获取锁、释放锁流程的总结到这里就结束了。本章只解析了AQS同步器锁的获取与释放，下一章解析AQS中的条件锁`ConditionObject`[传送门]("http://")。
 

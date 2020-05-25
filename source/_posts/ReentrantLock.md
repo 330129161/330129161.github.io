@@ -16,13 +16,13 @@ categories:
 
   - [源码,并发] 
 
-date: 2019-12-25 20:41:01
+date: 2019-09-24 20:41:01
 
 ---
 
 ## 概述
 
-`ReentrantLock`是一个基于AQS([AQS源码解析]("https://www.yingu.site/2019/12/25/AbstractQueuedSynchronizer/"))实现的可重入的独占锁，提供了公平锁与非公平锁的获取。与synchronized关键词实现的独占锁不同，`ReentrantLock`锁的粒度更细、功能更加丰富、使用也更灵活。不过`ReentrantLock`需要手动控制锁的释放。<!-- more -->
+`ReentrantLock`是一个基于AQS([AQS源码解析]("https://www.yingu.site/2019/07/26/AbstractQueuedSynchronizer/"))实现的可重入的独占锁，提供了公平锁与非公平锁的获取。与synchronized关键词实现的独占锁不同，`ReentrantLock`锁的粒度更细、功能更加丰富、使用也更灵活。不过`ReentrantLock`需要手动控制锁的释放。<!-- more -->
 
 ## 结构特点
 

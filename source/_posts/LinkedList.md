@@ -16,13 +16,13 @@ categories:
 
   - [源码,集合] 
 
-date: 2019-12-28 20:41:00
+date: 2019-06-15 20:41:00
 
 ---
 
 ## 概述
 
-跟[ArrayList](https://www.yingu.site/2019/12/25/ArrayList/)一样，`LinkedList`也是`List`的实现类。不过`ArrayList`是基于数组实现的，而`LinkedList`是基于链表实现的。<!--more--> `LinkedList`比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，`LinkedList`则没那么容易。与`ArrayList`不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。`LinkedList`需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。 
+跟`ArrayList`一样，`LinkedList`也是`List`的实现类。不过`ArrayList`是基于数组实现的，而`LinkedList`是基于链表实现的。<!--more--> `LinkedList`比较适合进行增加、删除的操作，因为只需要改变链表中节点的指向。而对于获取元素，`LinkedList`则没那么容易。与`ArrayList`不同，只需要传入坐标位置，就能根据底层数组，获取到指定位置的元素。`LinkedList`需要通过遍历列表的方式来匹配元素，因此效率比较低。最后，LinkedList是线程不安全的。 
 
 ## 结构特点
 
@@ -545,7 +545,7 @@ public boolean removeLastOccurrence(Object o) {
 
 ### iterator迭代器
 
-跟`ArrayList` 一样，`LinkedList`也实现了自己的迭代器，关于`ListIterator`在[ArrayList源码分析](https://www.yingu.site/2019/12/25/ArrayList/)中也有说明。
+跟`ArrayList` 一样，`LinkedList`也实现了自己的迭代器，关于`ListIterator`在[ArrayList源码分析](https://www.yingu.site/2019/06/08/ArrayList/)中也有说明。
 
 ```java
 private class ListItr implements ListIterator<E> {
