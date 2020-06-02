@@ -19,7 +19,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
 <meta property="article:published_time" content="2020-03-21T08:34:22.000Z">
-<meta property="article:modified_time" content="2020-05-25T11:54:21.798Z">
+<meta property="article:modified_time" content="2020-05-27T12:07:47.281Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="jvm">
 <meta property="article:tag" content="内存">
@@ -141,7 +141,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    33 分钟 读完 (大约 4925 个字)
+                    34 分钟 读完 (大约 5049 个字)
                 </span>
                 
                 
@@ -194,8 +194,8 @@
 <h4 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h4><blockquote>
 <p>直接内存并不是虚拟机运行时数据区的一部分，也不是Java 虚拟机规范中农定义的内存区域。在JDK1.4 中新加入了NIO(New Input/Output)类，引入了一种基于通道(Channel)与缓冲区（Buffer）的I/O 方式，它可以使用native 函数库直接分配堆外内存，然后通脱一个存储在Java堆中的DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在Java堆和Native堆中来回复制数据。</p>
 </blockquote>
-<h3 id="hospot虚拟机对象探秘"><a href="#hospot虚拟机对象探秘" class="headerlink" title="hospot虚拟机对象探秘"></a>hospot虚拟机对象探秘</h3><h4 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a>对象的创建</h4><p>​        虚拟机遇到一条new的指令时，首先去检查这个指令的参数是否能在常量池中定位到一个类的符号引用，并检查这个符号代表的类是否已被加载、解析和初始化过。如果没有，那么先执行相对于的类加载过程。类加载检查后，接下来虚拟机将对新生对象分配内存。</p>
-<h5 id="分配内存的方法"><a href="#分配内存的方法" class="headerlink" title="分配内存的方法"></a>分配内存的方法</h5><ul>
+<h3 id="hospot虚拟机对象探秘"><a href="#hospot虚拟机对象探秘" class="headerlink" title="hospot虚拟机对象探秘"></a>hospot虚拟机对象探秘</h3><h4 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a>对象的创建</h4><p><strong>new指令：</strong>虚拟机遇到一条new的指令时，首先去检查这个指令的参数是否能在常量池中定位到一个类的符号引用，并检查这个符号代表的类是否已被加载、解析和初始化过。如果没有，那么先执行相对于的类加载过程。类加载检查后，接下来虚拟机将对新生对象分配内存。</p>
+<h5 id="分配内存："><a href="#分配内存：" class="headerlink" title="分配内存："></a>分配内存：</h5><ul>
 <li><p>指针碰撞：假设java堆中内存时绝对规整的，所有用过的内存放在一边，空闲的放到另外一边，中间放一个指针做为分界点的指示器，那么分配内存仅仅只需要将指针往空闲空间的那边移动与对象大小相等的距离。</p>
 <p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E6%8C%87%E9%92%88%E7%A2%B0%E6%92%9E.png" alt=""></p>
 </li>
@@ -213,10 +213,9 @@
 <li>采用cas+失败重试机制，保证更新的原子性（跟java中，AQS中获取锁方式一样，通过cas修改状态值，失败后，循环重试，直到成功或抛出异常为止）</li>
 <li>把内存分配的动作按照线程划分到不同的空间中进行，即每个线程在java堆中预分配一块较小的区域，成为本地线程分配缓冲(Thread Local Allocation Buffer,TLAB)。哪个线程需要分配内存，就在那个线程的TLAB上分配，只有TLAB用完了并分配新的TLAB时，才需要锁定。是否使用TLAB,可以通过-XX:+/-UseTLAB参数来设置。</li>
 </ol>
-<blockquote>
-<p>内存分配完成之后，虚拟机需要将分配到的内存空间都初始化为0值(不包括对象头)。如果使用TLAB,这一工作过程也可以提前至TLAB分配时进行。这一步保证了对象的实例字段在java代码中不用赋初始值就可以直接使用，程序能访问到这些字段的数据类型所对应的零值。</p>
-<p>接下来，对虚拟机要对对象进行必要的设置。例如这个对象是哪个类的实例、如何才能找到类的元数据信息、对象的哈希码、对象的GC分代年龄。这些信息存放在对象头中(Object Header)。根据当前虚拟机运行状态不同是否需要启用偏向锁等，对象头会有不同的设置。</p>
-</blockquote>
+<p><strong>初始化：</strong>内存分配完成之后，虚拟机需要将分配到的内存空间都初始化为0值(不包括对象头)。如果使用TLAB,这一工作过程也可以提前至TLAB分配时进行。这一步保证了对象的实例字段在java代码中不用赋初始值就可以直接使用，程序能访问到这些字段的数据类型所对应的零值。</p>
+<p><strong>对象的初始设置：</strong>接下来虚拟机要对对象进行必要的设置。例如这个对象是哪个类的实例、如何才能找到类的元数据信息、对象的哈希码、对象的GC分代年龄。这些信息存放在对象头中(Object Header)。根据当前虚拟机运行状态不同是否需要启用偏向锁等，对象头会有不同的设置。</p>
+<p><strong>init方法：</strong>上面的工作都完成之后，从虚拟机的角度看，一个新的对象已经产生了，但是从java的角度来看，对象的创建才刚刚开始，init方法还没有执行，所有的字段都还为零，所以一般来说执行new指令之后会接着执行init方法，这时候才算真正完成对象的创建。</p>
 <h4 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h4><p>​        在Hotspot虚拟机中，对象在内存中储存的布局可以分配三块区域：对象头(Object Header)、实例数据(Instance Data)和对其填充(Padding)。</p>
 <p>​        Hotspot虚拟机的对象头包括两部分信息，第一部分用于存储对象自身运行时数据，如哈希码、GC分代年龄、锁状态标志、线程持有的锁、偏向线程id、偏向时间戳等，这部分数据的长度在32位和64位的虚拟机中分别为32bit和64bit，官方称它为“Mark Word”。</p>
 <blockquote>
@@ -399,8 +398,8 @@
         
         
         <div class="level-end">
-            <a class="level level-item has-link-grey  article-nav-next" href="/2019/12/25/CyclicBarrier/">
-                <span class="level-item">CyclicBarrier源码解析(jdk1.8)</span>
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/03/15/PriorityBlockingQueue/">
+                <span class="level-item">【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)</span>
                 <i class="level-item fas fa-chevron-right"></i>
             </a>
         </div>
@@ -478,7 +477,7 @@
                     </p>
                     <a href="/archives">
                         <p class="title has-text-weight-normal">
-                            15
+                            20
                         </p>
                     </a>
                 </div>
@@ -490,7 +489,7 @@
                     </p>
                     <a href="/categories">
                         <p class="title has-text-weight-normal">
-                            6
+                            7
                         </p>
                     </a>
                 </div>
@@ -502,7 +501,7 @@
                     </p>
                     <a href="/tags">
                         <p class="title has-text-weight-normal">
-                            9
+                            10
                         </p>
                     </a>
                 </div>
@@ -670,7 +669,7 @@
                 <span class="level-item">源码</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">12</span>
+                <span class="level-item tag">17</span>
             </span>
         </a><ul><li>
         <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
@@ -679,6 +678,14 @@
             </span>
             <span class="level-end">
                 <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
             </span>
         </a></li><li>
         <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
@@ -699,7 +706,7 @@
         <h3 class="menu-label">
             标签云
         </h3>
-        <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 12.5px;">juc</a> <a href="/tags/jvm/" style="font-size: 12.5px;">jvm</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 17.5px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E9%94%81/" style="font-size: 12.5px;">锁</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+        <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 12.5px;">juc</a> <a href="/tags/jvm/" style="font-size: 12.5px;">jvm</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 17.5px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E9%94%81/" style="font-size: 12.5px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 15px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
     </div>
 </div>
     
@@ -768,18 +775,18 @@
         
         <article class="media">
             
-            <a href="/2019/12/25/CyclicBarrier/" class="media-left">
+            <a href="/2020/03/15/PriorityBlockingQueue/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="CyclicBarrier源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-25T12:41:01.000Z">2019-12-25</time></div>
-                    <a href="/2019/12/25/CyclicBarrier/" class="title has-link-black-ter is-size-6 has-text-weight-normal">CyclicBarrier源码解析(jdk1.8)</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-15T11:09:09.000Z">2020-03-15</time></div>
+                    <a href="/2020/03/15/PriorityBlockingQueue/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
                     </p>
                 </div>
             </div>
@@ -787,18 +794,18 @@
         
         <article class="media">
             
-            <a href="/2019/12/01/Semaphore/" class="media-left">
+            <a href="/2020/03/15/LinkedBlockingDeque/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="Semaphore源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【阻塞队列】-- LinkedBlockingDeque源码解析(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-12-01T13:23:13.000Z">2019-12-01</time></div>
-                    <a href="/2019/12/01/Semaphore/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Semaphore源码解析(jdk1.8)</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-15T07:23:21.000Z">2020-03-15</time></div>
+                    <a href="/2020/03/15/LinkedBlockingDeque/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【阻塞队列】-- LinkedBlockingDeque源码解析(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
                     </p>
                 </div>
             </div>
@@ -832,7 +839,7 @@
                     <span class="level-item">三月 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">1</span>
+                    <span class="level-item tag">6</span>
                 </span>
             </a>
         </li>
@@ -937,7 +944,7 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/java/">
                         <span class="tag">java</span>
-                        <span class="tag is-grey">12</span>
+                        <span class="tag is-grey">17</span>
                     </a>
                 </div>
                 
@@ -972,7 +979,7 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
                         <span class="tag">源码</span>
-                        <span class="tag is-grey">12</span>
+                        <span class="tag is-grey">17</span>
                     </a>
                 </div>
                 
@@ -980,6 +987,13 @@
                     <a class="tags has-addons" href="/tags/%E9%94%81/">
                         <span class="tag">锁</span>
                         <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">5</span>
                     </a>
                 </div>
                 
