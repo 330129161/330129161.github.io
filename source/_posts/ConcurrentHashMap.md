@@ -294,7 +294,7 @@ static final int spread(int h) {
 }
 ```
 
-- `spread()`同`HashMap`中`hash()`方法，使用这种方式主要是为了减少hash冲突。([HashMap源码解析](https://www.yingu.site/2019/12/25/HashMap/))
+- `spread()`同`HashMap`中`hash()`方法，使用这种方式主要是为了减少hash冲突。([HashMap源码解析](https://www.yingu.site/2019/06/23/HashMap/))
 
 ### put系列方法
 
