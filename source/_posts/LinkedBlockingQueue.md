@@ -22,7 +22,7 @@ date: 2020-03-14 16:45:22
 
 ## 概述
 
-​		`LinkedBlockingQueue`是由链表组成的单向无界阻塞(严格意义上来并不是无界限) 队列。与`ArrayBlockingQueue` 不同的是，`LinkedBlockingQueue`生产消费各用一把锁，生产用的是putLock，消费是takeLock，目的就是为了增大吞吐量，但是因为每个节点都是一个对象，所以比较耗费内存。`LinkedBlockingQueue`默认大小为Integer.MAX_VALUE，如果出现生产大于消费的情况，导致队列中存放着大量未被消费的元素，那么有可能出现OOM。
+​		`LinkedBlockingQueue`是由链表组成的单向无界阻塞(严格意义上来并不是无界限) 队列。与`ArrayBlockingQueue` 不同的是，`LinkedBlockingQueue`生产消费各用一把锁，生产用的是putLock，消费是takeLock，目的就是为了增大吞吐量，但是因为每个节点都是一个对象，所以比较耗费内存。<!-- more -->`LinkedBlockingQueue`默认大小为Integer.MAX_VALUE，如果出现生产大于消费的情况，导致队列中存放着大量未被消费的元素，那么有可能出现OOM。
 
 ## 结构
 

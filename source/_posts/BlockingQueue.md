@@ -22,11 +22,12 @@ date: 2020-03-13 19:11:21
 
 ## 概述
 
-​			`BlockingQueue`即是我们所说的阻塞队列，它是一个接口，继承自Queue接口。后面我们要讲的阻塞队列，都实现自该接口。包括：
+​			`BlockingQueue`即是我们所说的阻塞队列，它是一个接口，继承自Queue接口。后面我们要讲的阻塞队列，都实现自该接口。包括：<!-- more -->
 
-- [ArrayBlockingQueue](https://www.yingu.site/2019/12/25/CyclicBarrier/)
-- [LinkedBlockingQueue]()
-- [LinkedBlockingDeque]()(实现了`BlockingDeque`，`BlockingDeque`继承自`BlockingQueue`)
+- [ArrayBlockingQueue]("https://www.yingu.site/2020/03/13/ArrayBlockingQueue/")
+- [LinkedBlockingQueue]("https://www.yingu.site/2020/03/14/LinkedBlockingQueue/")
+- [LinkedBlockingDeque]("https://www.yingu.site/2020/03/15/LinkedBlockingDeque/")(实现了`BlockingDeque`，`BlockingDeque`继承自`BlockingQueue`)
+- [PriorityBlockingQueue]("https://www.yingu.site/2020/03/15/PriorityBlockingQueue/")
 - ...
 
 ## 方法
@@ -65,5 +66,11 @@ throws InterruptedException;
 
 //获取头部元素，如果队列为空返回null
 E peek();
+
+//一次从队列中获取所有元素到指定集合中
+int drainTo(Collection<? super E> c);
+
+//一次性获取指定元素个数到指定集合中，该方法不会阻塞
+int drainTo(Collection<? super E> c, int maxElements);
 ```
 

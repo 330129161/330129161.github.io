@@ -22,7 +22,7 @@ date: 2020-03-13 20:09:32
 
 ## 概述
 
-​			`ArrayBlockingQueue`是由数组组成的一个单向有界阻塞队列。`ArrayBlockingQueue`内部只有一把锁`ReentrantLock`，通过`ReentrantLock`的`Condition`来控制内部的生产与消费。`ArrayBlockingQueue`创建时必须指定容量，当队列满后会阻塞生产的线程，队列空时会阻塞消费的线程。
+​			`ArrayBlockingQueue`是由数组组成的一个单向有界阻塞队列。`ArrayBlockingQueue`内部只有一把锁`ReentrantLock`，通过`ReentrantLock`的`Condition`来控制内部的生产与消费。`ArrayBlockingQueue`创建时必须指定容量，当队列满后会阻塞生产的线程，队列空时会阻塞消费的线程。<!-- more -->
 
 ## 结构特点
 
@@ -300,23 +300,23 @@ private E dequeue() {
 }
 
 void unlink(Node<E> x) {
-        // assert lock.isHeldByCurrentThread();
-        Node<E> p = x.prev;
-        Node<E> n = x.next;
-        if (p == null) {
-            unlinkFirst();
-        } else if (n == null) {
-            unlinkLast();
-        } else {
-            p.next = n;
-            n.prev = p;
-            x.item = null;
-            // Don't mess with x's links.  They may still be in use by
-            // an iterator.
-            --count;
-            notFull.signal();
-        }
+    // assert lock.isHeldByCurrentThread();
+    Node<E> p = x.prev;
+    Node<E> n = x.next;
+    if (p == null) {
+        unlinkFirst();
+    } else if (n == null) {
+        unlinkLast();
+    } else {
+        p.next = n;
+        n.prev = p;
+        x.item = null;
+        // Don't mess with x's links.  They may still be in use by
+        // an iterator.
+        --count;
+        notFull.signal();
     }
+}
 ```
 
 阻塞队列全部讲完之后，会专门出一章讲阻塞队列中的迭代器。
