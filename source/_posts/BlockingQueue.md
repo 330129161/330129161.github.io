@@ -54,13 +54,13 @@ throws InterruptedException;
 ### 消费方法
 
 ```java
-//获取并移除头部元素，如果队列为空会阻塞
+//获取并移除头部元素，如果队列为空会阻塞，响应中断
 E take() throws InterruptedException;
 
 //获取并移除头部元素，如果队列为空返回null
 E poll();
 
-//获取并移除头部元素，如果队列为空，响应中断，超时阻塞，超时后返回null
+//获取并移除头部元素，如果队列为空超时阻塞，超时后返回null，并且可以响应中断
 E poll(long timeout, TimeUnit unit)
 throws InterruptedException;
 
