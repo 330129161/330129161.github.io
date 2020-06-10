@@ -13,13 +13,13 @@
     <meta name="description" content="概述​        上一章我们主要通过execute()方法，来展开分析线程池的运作机制，这一章我们就来看看线程池中submit()这个具有返回值的方法是如何是实现的，又是如何获取返回值的。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)">
-<meta property="og:url" content="https://yingu.site/2020/03/16/ThreadPoolExecutor-2/index.html">
+<meta property="og:url" content="https://yingu.site/2020/03/20/ThreadPoolExecutor-2/index.html">
 <meta property="og:site_name" content="yingu的博客">
 <meta property="og:description" content="概述​        上一章我们主要通过execute()方法，来展开分析线程池的运作机制，这一章我们就来看看线程池中submit()这个具有返回值的方法是如何是实现的，又是如何获取返回值的。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png">
-<meta property="article:published_time" content="2020-03-16T10:32:14.000Z">
-<meta property="article:modified_time" content="2020-06-10T12:53:13.835Z">
+<meta property="article:published_time" content="2020-03-20T08:11:11.000Z">
+<meta property="article:modified_time" content="2020-06-10T13:57:10.147Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="java">
@@ -132,7 +132,7 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2020-03-16T10:32:14.000Z">2020-03-16</time>
+                <time class="level-item has-text-grey" datetime="2020-03-20T08:11:11.000Z">2020-03-20</time>
                 
                 <div class="level-item">
                 <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a>
@@ -178,10 +178,10 @@
         </div>
         
             <ul class="post-copyright">
-                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/03/16/ThreadPoolExecutor-2/">【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)</a></li>
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/03/20/ThreadPoolExecutor-2/">【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)</a></li>
                 <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
-                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/03/16/ThreadPoolExecutor-2/">https://yingu.site/2020/03/16/ThreadPoolExecutor-2/</a></li>
-                <li><strong>发布时间：</strong>2020-03-16</li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/03/20/ThreadPoolExecutor-2/">https://yingu.site/2020/03/20/ThreadPoolExecutor-2/</a></li>
+                <li><strong>发布时间：</strong>2020-03-20</li>
                 <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
                 </li>
             </ul>
@@ -240,16 +240,16 @@
     <div class="level post-navigation is-flex-wrap is-mobile">
         
         <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/03/16/DelayQueue/">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/03/29/JVM-MemoryManagement/">
                 <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">【阻塞队列】-- DelayQueue源码解析(jdk1.8)</span>
+                <span class="level-item">【深入理解java虚拟机】-- 自动内存管理机制</span>
             </a>
         </div>
         
         
         <div class="level-end">
-            <a class="level level-item has-link-grey  article-nav-next" href="/2020/03/15/PriorityBlockingQueue/">
-                <span class="level-item">【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)</span>
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/03/19/ThreadPoolExecutor-1/">
+                <span class="level-item">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</span>
                 <i class="level-item fas fa-chevron-right"></i>
             </a>
         </div>
@@ -270,7 +270,7 @@
     var gitalk = new Gitalk({
         clientID: '4e02017ba5f2640526d2',
         clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
-        id: '4a1e83018e3aebc02415d41c73d1cd3e',
+        id: '538a6fb7a9c9e4ce50d4dc6d1116c532',
         repo: 'gitalk-commnet',
         owner: '330129161',
         admin: ["330129161"],
@@ -586,7 +586,7 @@
         
         <article class="media">
             
-            <a href="/2020/03/21/JVM-MemoryManagement/" class="media-left">
+            <a href="/2020/03/29/JVM-MemoryManagement/" class="media-left">
                 <p class="image is-64x64">
                     <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【深入理解java虚拟机】-- 自动内存管理机制">
                 </p>
@@ -594,8 +594,8 @@
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-21T08:34:22.000Z">2020-03-21</time></div>
-                    <a href="/2020/03/21/JVM-MemoryManagement/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 自动内存管理机制</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-29T08:34:22.000Z">2020-03-29</time></div>
+                    <a href="/2020/03/29/JVM-MemoryManagement/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【深入理解java虚拟机】-- 自动内存管理机制</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/jvm/">jvm</a> / <a class="has-link-grey -link" href="/categories/jvm/%E5%86%85%E5%AD%98/">内存</a>
                     </p>
@@ -605,18 +605,18 @@
         
         <article class="media">
             
-            <a href="/2020/03/18/SynchronousQueue/" class="media-left">
+            <a href="/2020/03/20/ThreadPoolExecutor-2/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-18T10:32:14.000Z">2020-03-18</time></div>
-                    <a href="/2020/03/18/SynchronousQueue/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-20T08:11:11.000Z">2020-03-20</time></div>
+                    <a href="/2020/03/20/ThreadPoolExecutor-2/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a>
                     </p>
                 </div>
             </div>
@@ -624,7 +624,7 @@
         
         <article class="media">
             
-            <a href="/2020/03/16/ThreadPoolExecutor-1/" class="media-left">
+            <a href="/2020/03/19/ThreadPoolExecutor-1/" class="media-left">
                 <p class="image is-64x64">
                     <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)">
                 </p>
@@ -632,8 +632,8 @@
             
             <div class="media-content">
                 <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-16T10:32:14.000Z">2020-03-16</time></div>
-                    <a href="/2020/03/16/ThreadPoolExecutor-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</a>
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-19T03:01:21.000Z">2020-03-19</time></div>
+                    <a href="/2020/03/19/ThreadPoolExecutor-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a>
                     </p>
