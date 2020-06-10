@@ -142,7 +142,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    16 分钟 读完 (大约 2345 个字)
+                    18 分钟 读完 (大约 2771 个字)
                 </span>
                 
                 
@@ -151,11 +151,11 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2020/03/16/ThreadPoolExecutor/">【线程池】-- ThreadPoolExecutor源码解析(jdk1.8)</a>
+                <a class="has-link-black-ter" href="/2020/03/16/ThreadPoolExecutor-2/">【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)</a>
             
         </h1>
         <div class="content">
-            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2>
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>​        上一章我们主要通过<code>execute()</code>方法，来展开分析线程池的运作机制，这一章我们就来看看线程池中<code>submit()</code>这个具有返回值的方法是如何是实现的，又是如何获取返回值的。
         </div>
         
         
@@ -163,7 +163,63 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2020/03/16/ThreadPoolExecutor/#more">阅读更多</a>
+                <a class="button is-size-7 is-light" href="/2020/03/16/ThreadPoolExecutor-2/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-03-16T10:32:14.000Z">2020-03-16</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    1 小时 读完 (大约 8081 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2020/03/16/ThreadPoolExecutor-1/">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</a>
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>线程池就是一个缓存的概念，将使用完的线程放入到线程池中管理，这样有下一个任务需要执行时，直接从线程池中获取线程执行就行，避免重复的执行线程创建、销毁操作，做到线程复用，从而提高线程的利用率，还能通过线程池来对执行任务的线程进行控制，避免线程被滥用。
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2020/03/16/ThreadPoolExecutor-1/#more">阅读更多</a>
                 </div>
             </div>
         </div>
@@ -226,7 +282,7 @@
                     </p>
                     <a href="/archives">
                         <p class="title has-text-weight-normal">
-                            23
+                            24
                         </p>
                     </a>
                 </div>
@@ -350,7 +406,7 @@
                 <span class="level-item">源码</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">20</span>
+                <span class="level-item tag">21</span>
             </span>
         </a><ul><li>
         <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
@@ -366,7 +422,7 @@
                 <span class="level-item">线程池</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">1</span>
+                <span class="level-item tag">2</span>
             </span>
         </a></li><li>
         <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
@@ -395,7 +451,7 @@
         <h3 class="menu-label">
             标签云
         </h3>
-        <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 12px;">juc</a> <a href="/tags/jvm/" style="font-size: 12px;">jvm</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 12px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 14px;">集合</a>
+        <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
     </div>
 </div>
     
@@ -486,18 +542,18 @@
         
         <article class="media">
             
-            <a href="/2020/03/16/DelayQueue/" class="media-left">
+            <a href="/2020/03/16/ThreadPoolExecutor-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【阻塞队列】-- DelayQueue源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-16T10:32:14.000Z">2020-03-16</time></div>
-                    <a href="/2020/03/16/DelayQueue/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【阻塞队列】-- DelayQueue源码解析(jdk1.8)</a>
+                    <a href="/2020/03/16/ThreadPoolExecutor-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a>
                     </p>
                 </div>
             </div>
@@ -531,7 +587,7 @@
                     <span class="level-item">三月 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">9</span>
+                    <span class="level-item tag">10</span>
                 </span>
             </a>
         </li>
@@ -636,7 +692,7 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/java/">
                         <span class="tag">java</span>
-                        <span class="tag is-grey">20</span>
+                        <span class="tag is-grey">21</span>
                     </a>
                 </div>
                 
@@ -671,14 +727,14 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
                         <span class="tag">源码</span>
-                        <span class="tag is-grey">20</span>
+                        <span class="tag is-grey">21</span>
                     </a>
                 </div>
                 
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
                         <span class="tag">线程池</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">2</span>
                     </a>
                 </div>
                 
@@ -803,18 +859,18 @@
         
         <article class="media">
             
-            <a href="/2020/03/16/DelayQueue/" class="media-left">
+            <a href="/2020/03/16/ThreadPoolExecutor-1/" class="media-left">
                 <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【阻塞队列】-- DelayQueue源码解析(jdk1.8)">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png" alt="【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)">
                 </p>
             </a>
             
             <div class="media-content">
                 <div class="content">
                     <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-03-16T10:32:14.000Z">2020-03-16</time></div>
-                    <a href="/2020/03/16/DelayQueue/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【阻塞队列】-- DelayQueue源码解析(jdk1.8)</a>
+                    <a href="/2020/03/16/ThreadPoolExecutor-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</a>
                     <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a>
                     </p>
                 </div>
             </div>
@@ -848,7 +904,7 @@
                     <span class="level-item">三月 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">9</span>
+                    <span class="level-item tag">10</span>
                 </span>
             </a>
         </li>
@@ -953,7 +1009,7 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/java/">
                         <span class="tag">java</span>
-                        <span class="tag is-grey">20</span>
+                        <span class="tag is-grey">21</span>
                     </a>
                 </div>
                 
@@ -988,14 +1044,14 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
                         <span class="tag">源码</span>
-                        <span class="tag is-grey">20</span>
+                        <span class="tag is-grey">21</span>
                     </a>
                 </div>
                 
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
                         <span class="tag">线程池</span>
-                        <span class="tag is-grey">1</span>
+                        <span class="tag is-grey">2</span>
                     </a>
                 </div>
                 
