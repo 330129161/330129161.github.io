@@ -2,7 +2,7 @@ title: 【线程池】-- ThreadPoolExecutor源码解析(下)(jdk1.8)
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-7.jpg
 
 toc: true 
 
@@ -16,7 +16,7 @@ categories:
 
   - [源码,线程池] 
 
-date: 2020-03-16 18:32:14
+date: 2020-03-20 16:11:11
 
 ---
 

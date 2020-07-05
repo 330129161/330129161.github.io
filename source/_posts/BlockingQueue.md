@@ -2,7 +2,7 @@ title: 【阻塞队列】-- BlockingQueue总结(jdk1.8)
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-12.jpg
 
 toc: true 
 

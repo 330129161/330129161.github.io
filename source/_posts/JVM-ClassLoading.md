@@ -2,7 +2,7 @@ title: 【深入理解java虚拟机】-- 虚拟机类加载机制
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-19.jpg
 
 toc: true 
 

@@ -2,7 +2,7 @@ title: 【深入理解java虚拟机】-- 垃圾收集器与内存分配策略
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-2.jpg
 
 toc: true 
 

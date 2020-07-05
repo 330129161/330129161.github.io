@@ -2,7 +2,7 @@ title: 【深入理解java虚拟机】-- 自动内存管理机制
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg
 
 toc: true 
 
@@ -15,7 +15,7 @@ categories:
 
   - [jvm,内存] 
 
-date: 2020-03-21 16:34:22
+date: 2020-03-29 16:34:22
 
 ---
 

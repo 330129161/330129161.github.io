@@ -2,7 +2,7 @@ title: ArrayList源码解析(jdk1.8)
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-11.jpg
 
 toc: true 
 

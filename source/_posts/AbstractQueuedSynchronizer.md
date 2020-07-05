@@ -2,7 +2,7 @@ title: AbstractQueuedSynchronizer源码解析(jdk1.8)
 
 author: yingu
 
-thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/book.png
+thumbnail: http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-1.jpg
 
 toc: true 
 
