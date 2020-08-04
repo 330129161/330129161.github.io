@@ -19,7 +19,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg">
 <meta property="article:published_time" content="2020-05-03T11:12:55.000Z">
-<meta property="article:modified_time" content="2020-07-05T08:14:00.265Z">
+<meta property="article:modified_time" content="2020-07-05T10:03:33.073Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="docker">
 <meta property="article:tag" content="工具">
@@ -262,7 +262,7 @@
 <li>-e PREFER_HOST_MODE=hostname ：表示支持hostname，默认为ip模式</li>
 <li>-e MODE=standalone：表示单机模式</li>
 <li>-v /C/nacos/logs:/home/nacos/logs：将日志映射出来</li>
-<li>-e MYSQL_SERVICE_*：<code>MYSQL_SERVICE_</code>开头的为mysql的配置信息</li>
+<li>-e MYSQL_SERVICE_*：MYSQL_SERVICE_开头的为mysql的配置信息</li>
 </ul>
 <h2 id="Docker启动elasticsearch"><a href="#Docker启动elasticsearch" class="headerlink" title="Docker启动elasticsearch"></a>Docker启动elasticsearch</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd --restart&#x3D;always --name elasticsearch-server -v  &#x2F;C&#x2F;elasticsearch&#x2F;config&#x2F;elasticsearch.yml:&#x2F;usr&#x2F;share&#x2F;elasticsearch&#x2F;config&#x2F;elasticsearch.yml -v &#x2F;C&#x2F;elasticsearch&#x2F;data:&#x2F;usr&#x2F;share&#x2F;elasticsearch&#x2F;data -v  &#x2F;C&#x2F;elasticsearch&#x2F;logs:&#x2F;usr&#x2F;share&#x2F;elasticsearch&#x2F;logs -p 9200:9200 -p 9300:9300 -e &quot;discovery.type&#x3D;single-node&quot; elasticsearch</span><br></pre></td></tr></table></figure>
 
@@ -533,7 +533,7 @@
         <ul class="menu-list">
         
             <li>
-                <a class="level is-mobile" href="https://www.bestarnold.com/" target="_blank" rel="noopener">
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
                     <span class="level-left">
                         <span class="level-item">Arnold</span>
                     </span>
