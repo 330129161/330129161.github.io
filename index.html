@@ -122,13 +122,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2021-03-02T13:09:33.295Z">2021-03-02</time>
+                <time class="level-item has-text-grey" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    1 小时 读完 (大约 8906 个字)
+                    1 小时 读完 (大约 6838 个字)
                 </span>
                 
                 
@@ -137,29 +141,70 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                <a class="has-link-black-ter" href="/2021/03/02/MySqlSummary/">MySqlSummary</a>
+                <a class="has-link-black-ter" href="/2020/05/04/RedisSummary/">redis总结</a>
             
         </h1>
         <div class="content">
-            <hr>
-<hr>
-<p>title: mysql总结</p>
-<p>author: yingu</p>
-<p>thumbnail: <a href="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg">http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg</a></p>
-<p>toc: true </p>
-<p>tags:</p>
-<ul>
-<li>mysql</li>
-<li>工具</li>
-<li>数据库</li>
-</ul>
-<p>categories: </p>
-<ul>
-<li>[工具,mysql] </li>
-</ul>
-<p>date: 2020-05-04 13:15:42</p>
-<hr>
-<h3 id="存储引擎"><a href="#存储引擎" class="headerlink" title="存储引擎"></a>存储引擎</h3><p>MySql支持多种存储引擎，通过navicat新建表可以看到，MySql一共支持7种存储引擎。我们平时听到最多的MyISAM与InnoDB就在其中。MyISAM是5.1版本之前的默认引擎，5.1之后InnoDB就成为了Mysql的默认引擎，一直沿用至今。那么这两种引擎之间有什么区别呢？<br><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/mysql_engine.png" alt=""></p>
+            <h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><h3 id="String"><a href="#String" class="headerlink" title="String"></a>String</h3><p>常用命令: <code>set,get,decr,incr,mget</code> 等。</p>
+<p>特点：redis种最常用的一种数据结构</p>
+<p>应用场景： 通过String的bitmap可以实现：布隆过滤器、AO权限、用户签到、活跃用户、用户在线状态。</p>
+<p>通过自增、自减实现计数器、分布式锁</p>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2020/05/04/RedisSummary/#more">阅读更多</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/mysql/">mysql</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    1 小时 读完 (大约 8874 个字)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2020/05/04/MySqlSummary/">mysql总结</a>
+            
+        </h1>
+        <div class="content">
+            <h3 id="存储引擎"><a href="#存储引擎" class="headerlink" title="存储引擎"></a>存储引擎</h3><p>MySql支持多种存储引擎，通过navicat新建表可以看到，MySql一共支持7种存储引擎。我们平时听到最多的MyISAM与InnoDB就在其中。MyISAM是5.1版本之前的默认引擎，5.1之后InnoDB就成为了Mysql的默认引擎，一直沿用至今。那么这两种引擎之间有什么区别呢？<br><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/mysql_engine.png" alt=""></p>
 <table>
 <thead>
 <tr>
@@ -545,65 +590,6 @@
         </div>
         
         
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-    
-<div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time>
-                
-                <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
-                </div>
-                
-                
-                <span class="level-item has-text-grey">
-                    
-                    
-                    1 小时 读完 (大约 6838 个字)
-                </span>
-                
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
-            
-                <a class="has-link-black-ter" href="/2020/05/04/RedisSummary/">redis总结</a>
-            
-        </h1>
-        <div class="content">
-            <h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><h3 id="String"><a href="#String" class="headerlink" title="String"></a>String</h3><p>常用命令: <code>set,get,decr,incr,mget</code> 等。</p>
-<p>特点：redis种最常用的一种数据结构</p>
-<p>应用场景： 通过String的bitmap可以实现：布隆过滤器、AO权限、用户签到、活跃用户、用户在线状态。</p>
-<p>通过自增、自减实现计数器、分布式锁</p>
-        </div>
-        
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2020/05/04/RedisSummary/#more">阅读更多</a>
-                </div>
-            </div>
-        </div>
         
         
     </div>
@@ -1155,7 +1141,7 @@
                     </p>
                     <a href="/categories">
                         <p class="title has-text-weight-normal">
-                            12
+                            13
                         </p>
                     </a>
                 </div>
@@ -1167,7 +1153,7 @@
                     </p>
                     <a href="/tags">
                         <p class="title has-text-weight-normal">
-                            16
+                            18
                         </p>
                     </a>
                 </div>
@@ -1267,12 +1253,20 @@
                 <span class="level-item">工具</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">2</span>
+                <span class="level-item tag">3</span>
             </span>
         </a><ul><li>
         <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
             <span class="level-start">
                 <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/mysql/">
+            <span class="level-start">
+                <span class="level-item">mysql</span>
             </span>
             <span class="level-end">
                 <span class="level-item tag">1</span>
@@ -1344,7 +1338,7 @@
         <h3 class="menu-label">
             标签云
         </h3>
-        <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 18.57px;">java</a> <a href="/tags/juc/" style="font-size: 12.86px;">juc</a> <a href="/tags/jvm/" style="font-size: 12.86px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.43px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 17.14px;">并发</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.43px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 12.86px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 15.71px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 14.29px;">集合</a>
+        <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 18.57px;">java</a> <a href="/tags/juc/" style="font-size: 12.86px;">juc</a> <a href="/tags/jvm/" style="font-size: 12.86px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 12.86px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 17.14px;">并发</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.43px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 12.86px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 15.71px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 14.29px;">集合</a>
     </div>
 </div>
     
@@ -1356,25 +1350,6 @@
         <h3 class="menu-label">
             最新文章
         </h3>
-        
-        <article class="media">
-            
-            <a href="/2021/03/02/MySqlSummary/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-03-02T13:09:33.295Z">2021-03-02</time></div>
-                    <a href="/2021/03/02/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
-                    <p class="is-size-7 is-uppercase">
-                        
-                    </p>
-                </div>
-            </div>
-        </article>
         
         <article class="media">
             
@@ -1390,6 +1365,25 @@
                     <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="mysql总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">mysql总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/mysql/">mysql</a>
                     </p>
                 </div>
             </div>
@@ -1464,23 +1458,12 @@
         <ul class="menu-list">
         
         <li>
-            <a class="level is-marginless" href="/archives/2021/03/">
-                <span class="level-start">
-                    <span class="level-item">三月 2021</span>
-                </span>
-                <span class="level-end">
-                    <span class="level-item tag">1</span>
-                </span>
-            </a>
-        </li>
-        
-        <li>
             <a class="level is-marginless" href="/archives/2020/05/">
                 <span class="level-start">
                     <span class="level-item">五月 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">2</span>
+                    <span class="level-item tag">3</span>
                 </span>
             </a>
         </li>
@@ -1640,6 +1623,13 @@
                 </div>
                 
                 <div class="control">
+                    <a class="tags has-addons" href="/tags/mysql/">
+                        <span class="tag">mysql</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
                     <a class="tags has-addons" href="/tags/redis/">
                         <span class="tag">redis</span>
                         <span class="tag is-grey">1</span>
@@ -1663,7 +1653,7 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
                         <span class="tag">工具</span>
-                        <span class="tag is-grey">2</span>
+                        <span class="tag is-grey">3</span>
                     </a>
                 </div>
                 
@@ -1671,6 +1661,13 @@
                     <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
                         <span class="tag">并发</span>
                         <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">
+                        <span class="tag">数据库</span>
+                        <span class="tag is-grey">1</span>
                     </a>
                 </div>
                 
@@ -1733,25 +1730,6 @@
         
         <article class="media">
             
-            <a href="/2021/03/02/MySqlSummary/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-03-02T13:09:33.295Z">2021-03-02</time></div>
-                    <a href="/2021/03/02/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
-                    <p class="is-size-7 is-uppercase">
-                        
-                    </p>
-                </div>
-            </div>
-        </article>
-        
-        <article class="media">
-            
             <a href="/2020/05/04/RedisSummary/" class="media-left">
                 <p class="image is-64x64">
                     <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
@@ -1764,6 +1742,25 @@
                     <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
                     <p class="is-size-7 is-uppercase">
                         <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="mysql总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">mysql总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/mysql/">mysql</a>
                     </p>
                 </div>
             </div>
@@ -1838,23 +1835,12 @@
         <ul class="menu-list">
         
         <li>
-            <a class="level is-marginless" href="/archives/2021/03/">
-                <span class="level-start">
-                    <span class="level-item">三月 2021</span>
-                </span>
-                <span class="level-end">
-                    <span class="level-item tag">1</span>
-                </span>
-            </a>
-        </li>
-        
-        <li>
             <a class="level is-marginless" href="/archives/2020/05/">
                 <span class="level-start">
                     <span class="level-item">五月 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">2</span>
+                    <span class="level-item tag">3</span>
                 </span>
             </a>
         </li>
@@ -2014,6 +2000,13 @@
                 </div>
                 
                 <div class="control">
+                    <a class="tags has-addons" href="/tags/mysql/">
+                        <span class="tag">mysql</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
                     <a class="tags has-addons" href="/tags/redis/">
                         <span class="tag">redis</span>
                         <span class="tag is-grey">1</span>
@@ -2037,7 +2030,7 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
                         <span class="tag">工具</span>
-                        <span class="tag is-grey">2</span>
+                        <span class="tag is-grey">3</span>
                     </a>
                 </div>
                 
@@ -2045,6 +2038,13 @@
                     <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
                         <span class="tag">并发</span>
                         <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">
+                        <span class="tag">数据库</span>
+                        <span class="tag is-grey">1</span>
                     </a>
                 </div>
                 
