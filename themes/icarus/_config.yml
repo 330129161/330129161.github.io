@@ -174,7 +174,7 @@ widgets:
         position: left
         # Links to be shown in the links widget
         links:
-            Arnold: 'https://www.bestarnold.com/'
+            Arnold: 'http://www.bestarnold.com/'
             #Hexo: 'https://hexo.io'
             #PPOffice: 'https://github.com/ppoffice'
     -
@@ -236,7 +236,7 @@ plugins:
     progressbar: true
     # BuSuanZi site/page view counter
     # https://busuanzi.ibruce.info
-    busuanzi: false
+    busuanzi: true
 # CDN provider settings
 # https://ppoffice.github.io/hexo-theme-icarus/Configuration/Theme/speed-up-your-site-with-custom-cdn/
 providers:
@@ -246,4 +246,3 @@ providers:
     fontcdn: google
     # Name or URL of the webfont Icon CDN provider
     iconcdn: fontawesome
-    

@@ -154,7 +154,7 @@ docker run -itd  -e PREFER_HOST_MODE=hostname -v /C/nacos/logs:/home/nacos/logs 
 - -e PREFER_HOST_MODE=hostname ：表示支持hostname，默认为ip模式
 - -e MODE=standalone：表示单机模式
 - -v /C/nacos/logs:/home/nacos/logs：将日志映射出来
-- -e MYSQL_SERVICE_*：`MYSQL_SERVICE_`开头的为mysql的配置信息
+- -e MYSQL_SERVICE_*：MYSQL_SERVICE_开头的为mysql的配置信息
 
 ## Docker启动elasticsearch
 
