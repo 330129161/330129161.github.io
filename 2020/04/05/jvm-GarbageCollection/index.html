@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>【深入理解java虚拟机】-- 垃圾收集器与内存分配策略 - yingu的博客</title>
+
+
+    <meta name="description" content="本系列内容，大量引用自《深入理解java虚拟机》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。  对象是否存活​        在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【深入理解java虚拟机】-- 垃圾收集器与内存分配策略">
+<meta property="og:url" content="https://yingu.site/2020/04/05/jvm-GarbageCollection/index.html">
+<meta property="og:site_name" content="yingu的博客">
+<meta property="og:description" content="本系列内容，大量引用自《深入理解java虚拟机》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。  对象是否存活​        在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-2.jpg">
+<meta property="article:published_time" content="2020-04-05T03:33:07.000Z">
+<meta property="article:modified_time" content="2021-07-18T12:31:14.992Z">
+<meta property="article:author" content="yingu">
+<meta property="article:tag" content="jvm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-2.jpg">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/cs.ico">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="alternate" href="/atom.xml" title="yingu的博客" type="application/atom+xml">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="【深入理解java虚拟机】-- 垃圾收集器与内存分配策略" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">主页</a>
+                
+                <a class="navbar-item"
+                href="/archives">文章</a>
+                
+                <a class="navbar-item"
+                href="/categories">分类</a>
+                
+                <a class="navbar-item"
+                href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-04-05T03:33:07.000Z">2020-04-05</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/jvm/">jvm</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    1 小时 读完 (大约 8719 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                【深入理解java虚拟机】-- 垃圾收集器与内存分配策略
+            
+        </h1>
+        <div class="content">
+            <blockquote>
+<p>本系列内容，大量引用自《<a href="https://book.douban.com/subject/6522893/">深入理解java虚拟机</a>》，说是照抄一遍也不为过。不过作者自己也加入了一些图文用来帮助理解。</p>
+</blockquote>
+<h2 id="对象是否存活"><a href="#对象是否存活" class="headerlink" title="对象是否存活"></a>对象是否存活</h2><p>​        在堆中存放着java世界中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，那些已经“死去”(即不能再被任何途径使用的对象)。<a id="more"></a></p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>​        给对象中添加一个引用计数器，每当有一个地方引用它时，计时器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象，就是不可能再被使用的。这种方式虽然实现简单、效率也很高，但是主流的java虚拟机里面没有选用引用计数法来管理内存，其中最主要的原因是它很难解决对象之间相互循环引用的问题。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Object q1 = <span class="keyword">new</span> GcObject(); <span class="comment">//实例1，引用数+1</span></span><br><span class="line">Object q2 = <span class="keyword">new</span> GcObject(); <span class="comment">//实例2，引用数+1</span></span><br><span class="line"></span><br><span class="line">q1.instance = q2; <span class="comment">//将实例1中的instance熟悉指向实例2，实例2，引用数+1</span></span><br><span class="line">q2.instance = q1; <span class="comment">//将实例2中的instance熟悉指向实例1，实例1，引用数+1</span></span><br><span class="line"></span><br><span class="line">q1 = <span class="keyword">null</span>; <span class="comment">//实例1，引用数-1</span></span><br><span class="line">q2 = <span class="keyword">null</span>; <span class="comment">//实例2，引用数-1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//垃圾回收后，实例1，实例2还存在堆中，不会被回收</span></span><br><span class="line"><span class="comment">//System.gc();</span></span><br></pre></td></tr></table></figure>
+
+<p>​        上面代表就描述了，引用计数器在实际使用中会出现的一个循环引用的问题。对象没有被其他地方引用，但是计数器值不为0，此时实例1、2无法被回收，也就是我们常说的内存泄漏。</p>
+<p>​        之前看到过一个问题，为什么jvm知道object的细节，但是在实现q1=null这条语句之前,不先将q1内部实例全部引用设置为null(也就是将q1.instance也置为null)呢？</p>
+<p>问题是，虚拟机不能肯定q1.instance指向的也是垃圾，就不能随便修改它的内容。当遇到复杂的庞大的循环链结构时，我们又如何确定指向的对象会成为垃圾呢，就算是一个个寻找是否有其他对象引用，最终还是会存在循环引用问题。因此如果采用计数器法，那么必然要手动将instance置为null。</p>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>​        在主流的商用程序语言的主流实现中，都是称通过可达性分析来判断对象是否存活的。这个算法的基本思路就是通过一系列的成为“GC Roots”的对象做为起始点，从这些节点开始向下搜索，搜索所走过的路径成为引用链(Reference Chain),当一个对象到GC Roots没有任何引用链相连时，则证明此对象是不可用的。下图中，对象5、6、7虽然互相有关联，但是他们到GC Root是不可达的，所以他们江湖判定为是可回收的对象。</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E6%B3%95.png" alt=""></p>
+<p>在java语言中，可做为GC Root的对象包括下面几种</p>
+<ul>
+<li>虚拟机栈(栈帧中的本地变量表)中引用的对象。</li>
+<li>元空间中类静态属性引用的对象</li>
+<li>元空间中常量引用的对象</li>
+<li>本地方法中JNI(即一般说的Native方法)引用的对象</li>
+</ul>
+<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><p>​        无论是通过引用计数法判断对象的引用数量，还是通过可达性分析法判断对象的引用链是否可达，判断对象是否存货都与“引用“有关。JDK 1.2以前，java中的引用定义很传统：如果reference类型的数据中存储的数据代表的是另一块内存的起始地址，就成这块内存代表着一个引用。一个对象在这种定义下只有被引用或者没有被引用两种状态，对于如何描述一些”食之无味，弃之可惜“的对象就显得无能为力。</p>
+<p>​    因此在JDK 1.2以后，Java对引用的概念进行了扩充，将应用分为强引用(Strong Reference)、软引用(Soft Reference)、弱引用(Weak Reference)、虚引用(Phantom Reference)四种、这4中引用强度依次逐渐减弱。</p>
+<ul>
+<li>强引用：就是指在程序代码中普普遍存在的，类似”Object obj = new Object()“这类的引用，只要强引用还存在，垃圾收集器永远不会回收掉被引用的对象。</li>
+<li>软引用：用来描述一些还有用，但并非必需的对象。JVM在将要发生内存溢出前，会把这些对象回收。通过SoftReference类来实现软引用。</li>
+<li>弱引用：也是用来描述非必需对象的。当垃圾收集器工作时，无论当前内存是否足够，弱引用对象都会被回收。通过WeakReference类来实现弱引用时，可以指定一个ReferenceQueue，如果弱引用所引用的对象被回收，Java虚拟机就会把这个弱引用加入到与之关联的引用队列中。</li>
+<li>虚引用：是最弱的一种引用关系。一个对象是否有虚引用的存在，完全不会对其生存时间构成影响；也无法通过虚引用来取的一个对象实例。一个对象设置虚引用关联的唯一目的就是能在这个对象被垃圾回收时收到一个系统通知。通过PhantomReference类来实现虚引用时必须指定一个ReferenceQueue队列，目标对象被回收前，它的引用会被放入该队列。目前在NIO中，就运用了虚引用管理堆外内存，通过虚引用指向堆外内存的地址，如果被回收，那么去堆外内存中查看对象是否存在，如果存在，那么将其回收。</li>
+</ul>
+<h3 id="对象死亡判定"><a href="#对象死亡判定" class="headerlink" title="对象死亡判定"></a>对象死亡判定</h3><p>​        即使在可达性分析算法中不可达的对象，也并非是“非死不可的”，这个时候它们暂时处于”缓刑“阶段，要真正宣告一个对象死亡，至少要经历两次标记过程：</p>
+<ol>
+<li><p>通过可达性分析法判断对象的引用链不可达时，进行第一次标记，并且进行一次筛选，筛选的条件是此对象是否有必要执行finalize()方法。当对象没有覆盖finalize方法或者该方法被虚拟机调用过，虚拟机将这两种情况视为“没有必要去执行”。</p>
+<p>如果该对象被判定为有必要执行finalize()方法，那么这个对象会被放置到一个叫做F-Queue的队列中，并在稍后由一个虚拟机自动建立的、低优先级的Finalize线程去执行它。这里所谓的”执行“就是去触发该方法，但并不会承诺等待它执行结束，这样做的原因是，如果对象在finalize()方法中执行缓慢，或者发生死循环，将会导致整个队列中的对象永久处于等待，甚至导知整个内存回收系统崩溃。</p>
+</li>
+<li><p>finalize()方法是对象逃脱死亡命运的最后一次机会，稍后GC将对F-Queue中的对象进行第二次小规模的标记，如果对象要在finalize()中拯救自己——只要重新与引用链上的一个对象重新建立关联即可，譬如将自己（this关键字）赋值给某个类变量或者成员变量，那么在第二次标记的时候就会被移除“即将回收”的集合；如果对象这时候还没有逃脱，那么就会被真的回收了。</p>
+</li>
+</ol>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E6%AD%BB%E4%BA%A1.png" alt=""></p>
+<h3 id="回收方法区"><a href="#回收方法区" class="headerlink" title="回收方法区"></a>回收方法区</h3><p>​        很多人认为方法区是没有垃圾收集的，java虚拟机规范中确实说过可以不要求虚拟机在方法区实现垃圾收集，而且在方法区中进行垃圾收集的”性价比“一般比较低；在堆中，尤其是在新生代中，常规应用进行一次垃圾收集一般可以回收70%~95%的空间，而永久代的垃圾收集效率远低于此。</p>
+<p>​        永久代的垃圾收集主要回收两部分内容，废弃常量和无用的类。判断一个常量是否是”废弃常量“比较简单，而要判定一个类是否是”无用的类“的条件则相对苛刻许多。类需要同时满足一下三种条件才算是“无用的类”。</p>
+<ol>
+<li>该类所有的实例都已经被回收，也就是java堆中不存在该类的任何实例。</li>
+<li>加载该类的ClassLoader已经被回收。</li>
+<li>该类对于的java.lang.Class对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</li>
+</ol>
+<p>虚拟机可以对满足上述3个条件的无用类进行回收，这里仅仅是”可以“，而不是和对象一样不使用了就必然会回收。</p>
+<h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2><h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>​        最基础的收集算法(Mark-Sweep)，顾名思义，先标记再清除。</p>
+<p>​        首先标记出所有需要回收的对象，再标记完成后统一回收所有被标记的对象。之所以说是最基础的收集算法，是因为后续的收集算法都是基于这种思路改进的。</p>
+<p>优点：简单</p>
+<p>缺点：</p>
+<ol>
+<li>效率不高，标记和清除两个过程效率都不高</li>
+<li>标记清除后会产生大量不连续的内存碎片，空间碎片较多可能会导知以后再程序运行过程中需要分配大对象时，无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作。</li>
+</ol>
+<p>适用于老年代，一般和标记整理算法搭配使用，老年区可能经过多次GC后，才会采用标记整理的算法压缩内存</p>
+<h3 id="复制算法"><a href="#复制算法" class="headerlink" title="复制算法"></a>复制算法</h3><p>​        为了解决效率问题，复制收集算法出现了，它将可用内存按照容量划分为大小相等的两块，每次只需使用其中的一块。当这一块内存用完了，就将存活着的对象复制到另外一块上面。然后把已经使用过的内存空间一次清理掉。这样使的每次都是对整个半区进行内存回收，也不用考虑内存碎片的问题。只要移动指针，按顺序分配内存即可，实现简单，运行高效，不足之处在于内存的使用率太低。</p>
+<p>​        现在商业虚拟机都采用这种收集算法来回收新生代，有公司研究表明，新生代中的对象98&amp;都是”朝生夕死“，所以并不需要按照1：1的比例来划分内存空间，而是将内存分为一块较大的Eden空间和两块较小的Survivor空间，每次使用Eden和其中一块Survivor。当回收时，将Eden和Survivor中还存活的对象一次性地复制到另一块Survivor空间上，最后清理掉Eden和刚才用过的Survivor空间。HotSpot虚拟机中默认Eden和Survivor的大小比例是8：1，也就是每次新生代中可用内存空间为整个新生代的90%，只有10%被浪费。当然，98%的对象可回收只是一般场景下的数据，我们没法保证每次回收的都只有不多于10%的对象存货，当Survivor空间不够是，需要依赖其他内存(这里指老年代)进行分配担保(Handle Promotion)。</p>
+<p>​    分配担保：如果另一块Survivor空间没有足够的空间存放上一次新生代中收集下来的存活对象时，这些对象将直接通过分配担保机制进入老年代。</p>
+<p>优点：简单，高效</p>
+<p>缺点：内存使用率低</p>
+<p>适用于新生代，针对频繁的回收，通过空间换时间方法提高回收的效率，同时保持内存的使用率在一个可接受的范围。</p>
+<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p>​        复制收集算法在对象存活率较高时就要较多的复制操作，效率会较低。更关键的是如果不想浪费50%的空间，就需要额外的空间进行担保，以应对被使用的内存中所有对象都100%存活的极端情况，所以在老年代一般不能直接选用这种算法。</p>
+<p>​        根据老年的特性，有人提出来另外一种“标记-整理”算法，标记过程与“标记-清除”算法一样，但后续的步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后清理掉端边界以外的内存。</p>
+<p>优点：简单，节省空间</p>
+<p>缺点：比标记-清除算法还多了整理这一步，而整理的效率也很低</p>
+<p>适用于老年代，不会频繁的回收，同时具有压缩功能，节省老年代内存，减小触发Full GC收集的次数</p>
+<h3 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h3><p>​        根据对象存活周期的不同将内存划分为几块。一般是把java堆分为新生代和老年代，这样就可以根据个年代的特点采用最适合的收集算法。新生代中每次垃圾收集时都发现有大批对象死去，只有少量存活，适合复制算法，只需要付出少量存活对象的复制成本就可以完成收集。而老年代中因为存活率较高、没有额外的空间进行担保，就必须使用“垃圾-清除”或者“标记-整理”算法来进行回收。</p>
+<h2 id="hptspot的算法实现"><a href="#hptspot的算法实现" class="headerlink" title="hptspot的算法实现"></a>hptspot的算法实现</h2><p>​        前面介绍了对象存活判定算法和垃圾收集算法，而在HotSpot虚拟机上是实现这些算法时，必须对算法的执行效率有严格的考量，才能保证虚拟机高效运行。</p>
+<h3 id="枚举根节点"><a href="#枚举根节点" class="headerlink" title="枚举根节点"></a>枚举根节点</h3><p>​        前面可达性分析法中说过通过GC Roots节点找引用链，通过是否可达判断对象的存活。而GC Root节点主要在全局的引用(例如常量或类静态属性)与执行上下文(例如栈帧中的本地变量表)，如何快速高效找出可作为GC Root的节点，便成为了一个问题。</p>
+<p>​        可达性分析必须在一个能确保一致性的快照中进行，也就是说在执行可达性分析时，不能出现分析过程中对象引用关系还在不断发生变化的情况，否则分析结果的准确性无法得到保证。这点是导致GC进行时必须停顿所有java执行线程的其中一个重要原因，即使是在号称(几乎)不会发生停顿的CMS收集器中，枚举根节点时也是必须要停顿的。</p>
+<p>​        由于目前主流的java虚拟机使用的都是准确性GC，所以当前执行系统停顿下来时，并不需要一个不漏地检查完所有执行上下文和全局的引用位置，虚拟机应当是有办法直接得知哪些地方存放者对象的引用,在HotSpot的实现中,是使用一组称为OopMap的数据结构来达到这个目的得,在类加载完成的时候,HotSpot就把对象内什么偏移量上是什么类型的数据计算出来,在JIT编译过程中,也会在特点的位置记录下来栈和寄存器中哪些位置是引用,这样GC在扫描时就可以直接得知这些信息了。</p>
+<h3 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h3><p>​        枚举根节点通过OopMap中记录的数据，可以快速准确的完成GC Roots枚举，但是又会导致引用关系变化，或者说OopMap内容变化的指令非常多，如果每一条都生成对应的OopMap，将会需要大量的额外空间，这样GC的空间成本太高。因此在实际中，HotSpot也没有为每条指令都生成OopMap，只是在“特定的位置”记录这些信息，这些位置被称为安全点(Safepoint)，即程序执行时并非在所有地方都能停顿下来开始GC，只有到达安全点时才能在暂停。</p>
+<p>​        安全点的选定既不能太少以至于让GC等待时间太长，也不能过于频繁以致于过分增大运行时的负荷。所以安全点的选定基本上是以程序“是否具有让程序长时间执行的特征”为标准进行选定的，因为每条指令执行的时间都非常短暂，程序不太可能因为指令流长度太长这个原因而过长时间运行，“长时间执行”的最明显的特征就是指令序列服用，例如方法调用、循环跳转、异常跳转等，所以具有这些功能的指令才会产生Safepoint。</p>
+<p>​        对于Safepoint，另一个需要考虑的问题就是如何在GC发生时让所有线程都“跑”到最近的安全点上再停顿下来。有两种方案可供选择：抢先式中断和主动式中断，其中抢先式中断不需要线程的执行代码主动区配合，在GC发生时，首先把所有的线程全部中断，如果发现有线程中断的地方不在安全点上，就恢复线程，就让它“跑“到安全点上。不过现在几乎没有虚拟机采用抢先式中断来暂停线程而响应GC事件。</p>
+<p>​        而主动中断的思想是当前GC需要中断线程的时候，不直接对线程操作，仅仅简单的设置一个标记，各个线程执行时主动去轮询这个标志，发现中断标志位真时就自己中断挂起，轮询标志的地方和安全点是重合的，另外再加上创建对象需要分配内存的地址。</p>
+<h3 id="安全区域"><a href="#安全区域" class="headerlink" title="安全区域"></a>安全区域</h3><p>​        前面说了通过让所有线程集中”跑“到Safepoint，来进入GC，如果此时程序处于Sleep状态或者Blocked状态，这时候线程无法响应JVM的中断请求，去安全的地方挂起，这个时候就需要安全区域来(Safe Region)解决。</p>
+<p>​        安全区域是指再一段代码片段中，引用关系不会发生变化。这个区域中任何地方GC都是安全的，可以把Safe Region看做是被扩展的Safepoint。</p>
+<p>​        在线程执行到Safe Region中的代码时，首先表示自己已经进入了Safe Region，那样，当这段事件里JVM要发起GC时，就不用管标识自己的为Safe Region状态的线程了。在线程离开时，它要检查系统是否已经完成了根节点枚举(或者是整个GC过程)，如果完成了，那线程就继续执行，否则它就必须等待直到收到可以安全离开Safe Region的信号为止。</p>
+<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E6%94%B6%E9%9B%86%E5%99%A8.png" alt=""></p>
+<p>​        上面展示了不同分代的收集器，如果两个收集器之间存在连线，就说明他们可以搭配使用。虚拟机所处的区域，则表示它属于新生代收集器还是老年代收集器。</p>
+<h3 id="Serial收集器"><a href="#Serial收集器" class="headerlink" title="Serial收集器"></a>Serial收集器</h3><p>​        采用复制算法的单线程收集器，进行垃圾收集器必须暂停其他所有工作线程，直到它收集结束(Stop The Word)。由于没有线程开销，可以在单CPU环境下获得最高的单线程收集效率。比较适合在运行在Client模式下的虚拟机。</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/Serial-Serial%20Old%20%E6%94%B6%E9%9B%86%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt=""></p>
+<h3 id="ParNew收集器"><a href="#ParNew收集器" class="headerlink" title="ParNew收集器"></a>ParNew收集器</h3><p>​         Serial收集器的多线程版本，除了使用多条线程进行垃圾收集之外，其余行为包括Serial收集器可用的所有控制参数、收集算法、Stop The World、对象分配规则、收集策略等都与Serial收集器完全一样。</p>
+<p><strong>除了Serial收集器外，目前只有它能和CMS收集器（Concurrent Mark Sweep）配合工作。</strong></p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/ParNew-Serial%20Old%20%E6%94%B6%E9%9B%86%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt=""></p>
+<h3 id="Parallel-Scavenge收集器"><a href="#Parallel-Scavenge收集器" class="headerlink" title="Parallel Scavenge收集器"></a>Parallel Scavenge收集器</h3><p>​        使用复制算法并行的多线程新生代收集器，看起来和ParNew一样。不过Parallel Scavenge收集器关注点与其他收集器不同，CMS更关注缩短用户收集时线程的停顿时间，而Parallel Scavenge目标是达到一个可控的吞吐量。</p>
+<blockquote>
+<p>所谓吞吐量就是CPU用于运行用户代码与CPU总消耗时间的比值，即 吞吐量=运行用户代码时间/(运行用户代码时间+垃圾收集时间)，虚拟机总共运行了100分钟，其中垃圾收集花掉1分钟，那吞吐量就是99%。</p>
+</blockquote>
+<p>​        停顿时间越短就越适合需要与用户交互的程序，良好的响应速度能提升用户提亚，而高吞吐量则可以高效率地利用CPU时间，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互任务。</p>
+<p>​        Parallel Scavenge收集器提供了两个参数用于控制吞吐量，分别是最大垃圾收集停顿时间的-XX:MaxGCPauseMills参数以及直接设置吞吐量大小的-XX:GCTimeRatio参数。</p>
+<p>​        MaxGCPauseMills参数设置一个值，收集器尽量保证内存回收花费的时间不超过设定值。但是GC停顿时间缩短是以牺牲吞吐量为代价的，比如：停顿时间设置较少，原先收集500M，现在只收集300M，但这也导致垃圾收集更频繁，原先10秒收集一次，每次停顿100毫秒，现在变为5秒收集一次，每次停顿70毫秒，停顿时间变少了，但是吞吐量也下来了。</p>
+<p><strong>无法与CMS收集器配合工作</strong></p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/Parallel%20Scavenge-Parallel%20Old%20%E6%94%B6%E9%9B%86%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt=""></p>
+<h3 id="Serial-Old收集器"><a href="#Serial-Old收集器" class="headerlink" title="Serial Old收集器"></a>Serial Old收集器</h3><p>​        Serial收集器的老年代版本，采用“标记-整理”算法，也是适用于Client模式下的虚拟机。不过同样适用于Server端，jdk1.5以及之前的版本中与Parallel Scavenge收集器搭配使用，还有就是作为CMS收集器的后备预案，在并发收集发生Concurrent Mode Failure时使用。</p>
+<h3 id="Parallel-Old"><a href="#Parallel-Old" class="headerlink" title="Parallel Old"></a>Parallel Old</h3><p>​        看名字就知道，是Parallel Scavenge收集器的老年代版本，使用多线程和“标记-整理”算法。是jdk1.6之后才提供的，抛弃了上面的Serial Old收集器，主要是Serial Old作为一个单线程收集器会拖后腿。无法将整体应用上获得吞吐量最大化的效果。还不如ParNew+CMS给力。</p>
+<p>​        Parallel Scavenge+Parallel Old组合，本着“吞吐量优先”的原则，在注重吞吐量以及CPU资源敏感的场合下，都可以优先此组合。</p>
+<h3 id="CMS收集器"><a href="#CMS收集器" class="headerlink" title="CMS收集器"></a>CMS收集器</h3><p>​        CMS(Concurrent Mark Sweep)收集器关注于获取最短回收停顿时间为目标的收集器，基于“标记-清除”算法实现，它的运作过程比前几款收集器更复杂，整个过程分为4个步骤</p>
+<ul>
+<li>初始标记(CMS initial mark): 标记GC Roots能直接关联的对象，速度很快，标记时需要Stop The World。</li>
+<li>并发标记(CMS concurrent mark): 进行GC Roots Tracing的过程。耗时长，但是可以与用户线程一起工作。</li>
+<li>重新标记：修正并发标记期间因用户程序继续运作而导知标记产生变动的那一部分对象的标记记录，也会Stop The World，并且停顿时间一般会比初始标记阶段稍长一些，但比并发标记时间短。</li>
+<li>并发清楚：清除标记的垃圾，耗时长，可以与用户线程一起工作。</li>
+</ul>
+<p>CMS的缺点：</p>
+<ol>
+<li>CMS收集器对CPU资源非常敏感。在并发阶段，会因为占用一部分线程而导致应用程序变慢，总吞吐量会降低。</li>
+<li>无法处理浮动垃圾，可能出现“Concurrent  Mode Failure”失败而导知另一次Full Gc的产生。由于在垃圾收集阶段用户线程还需要运行，那也就需要预留足够的内存空间给用户线程使用，因此CMS不能等到老年代满了才收集，需要预留一部分空间提供并发收集时的程序运作使用。JDK 1.6中，CMS收集器启动阈值为92%(可以通过-XX：CMSInitiatingOccupancyFraction来设置)，要是预留的内存无法满足需要，就会出现一次“Concurrent  Mode Failure”失败，这时虚拟机启动后备预案：临时启动Serial Old收集器来重新进行老年代的垃圾收集，这样停顿就很高了。所以说-XX：CMSInitiatingOccupancyFraction设置的太高，容易导知大量“Concurrent  Mode Failure”失败，性能反而降低。</li>
+<li>CMS基于‘“标记-清除”算法实现，收集结束时会有大量空间碎片。因此CMS收集器提供了一个-XX:+UseCMSCompactAtFullCollection开关参数(默认开启)，用于在CMS收集器顶不住要进行Full GC时开启内存碎片的合并整理过程，但是副作用就是停顿时间会变长。虚拟机设计者还提供了另外一个参数-XX:CMSFullGCsBeforeCompaction,用来设置执行了多少次不压缩的Full GC后，跟着来一次带压缩的(默认为0，标识每次Full GC时都要进行碎片整理)。</li>
+</ol>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/CMS%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt=""></p>
+<h2 id="G1收集器"><a href="#G1收集器" class="headerlink" title="G1收集器"></a>G1收集器</h2><p>​        G1收集器中还保留着新生代，老年代的概念，但是它们不再是物理隔离的了。在G1中，内存空间被分割成一个个的Region区，所谓新生代和老年代，都是由一个个Region组成的。同时G1也不需要跟别的收集器一起配合使用，自己就可以完成所有的收集工作，一款全能收集器。</p>
+<p>​        与CMS的“标记-清除”算法不同，G1从整体上看时基于“标记-整理”算法实现的收集器，从局部(两个Region之间)上来看是基于“复制”算法实现的，无论如何，这两种算法都意味着G1运行期间不会产生内存空间碎片。</p>
+<p>​        在G1收集器中，Region之间的对象引用以及其他收集器中的新生代与老年代之间的对象引用，虚拟机都是使用Remembered Set来避免全堆扫描的。G1中每一个Region都有一个与之对应的Remembered Set，虚拟机发现程序在对Reference类型的数据进行写操作时，会产生一个Write Barrier展示中断写操作，检查Reference引用的对象是否处以不同的Region之中(在分代的例子中就是检查是否老年代中的对象引用了新生代中的对象)，如果是，便通过CardTable把相关引用信息记录到被引用对象所属的Region的Remembered Set中，当进行内存回收时，在GC根节点的枚举范围中加入Remembered Set即可保证不对全堆扫描也不会有遗漏。</p>
+<p>​        如果不计算维护Remembered Set的操作，G1收集器的运作大致可划分为一下几个步骤：</p>
+<ul>
+<li>初始标记：跟CMS收集器一样，标记GC Roots能直接关联的对象</li>
+<li>并发标记：从GC Root开始对堆中对象进行可达性分析，找出存活对象，这步耗时久，但是可以与用户程序并发执行。</li>
+<li>最终标记：由于并发标记阶段，用户线程仍然在运行，会对标记产生一些偏差，通过Remembered Set Log记录这些变化，此阶段会将这些变化合并到remembered set中，需要停顿线程，但是可以并行执行。</li>
+<li>最终筛选：对各个Region回收价值和成本排序，根据用户期望的GC停顿时间来制定回收计划。</li>
+</ul>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/G1%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt=""></p>
+<h2 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="内存分配与回收策略"></a>内存分配与回收策略</h2><p>​        对象的内存分配，往大的方向讲，就是在对上分配(但是也有可能经过JIT编译后被拆散为标量类型并间接地栈上分配)，对象主要分配在新生代地Eden区上，如果启动了本地线程分配缓冲，则按照线程优先在TLAB上分配。少数情况下也会直接分配在老年代中，分配的规则并不是百分之百固定的，其细节取决于当前使用的是哪一种垃圾收集器组合，还有虚拟机中与内存相关的参数的设置。</p>
+<h3 id="对象优先在eden分配"><a href="#对象优先在eden分配" class="headerlink" title="对象优先在eden分配"></a>对象优先在eden分配</h3><p>​            大多数情况下，对象在新生代Eden区中分配。当前Eden区没有足够空间进行分配时，虚拟机将发起一次Minor GC。</p>
+<h3 id="大对象直接进入老年代"><a href="#大对象直接进入老年代" class="headerlink" title="大对象直接进入老年代"></a>大对象直接进入老年代</h3><p>​        所谓大对象是指，需要大量连续内存空间的对象，最典型的就是很长的字符串以及数组。虚拟机提供了一个-XX:PretenureSizeThreshold参数，令大于这个设置值的对象直接在老年代中分配，避免在Eden和两个Survivor区之间发生大量的内存复制。</p>
+<h3 id="长期存活对象进入老年代"><a href="#长期存活对象进入老年代" class="headerlink" title="长期存活对象进入老年代"></a>长期存活对象进入老年代</h3><p>​            虚拟机给每个对象定义了一个对象年龄计数器。Eden中的对象经历过第一次Minor GC后仍然存活，并且能被Survivor容纳的话，将被移动到Survivor空间中，并且对象年龄设置为1。每经历一次Minor GC，年龄数+1，年龄增加到一定程度(CMS默认6，其他默认15，可以通过-XX:MaxTenuringThreshold参数设置)，就会晋升到老年代中。</p>
+<h3 id="动态对象年龄判定"><a href="#动态对象年龄判定" class="headerlink" title="动态对象年龄判定"></a>动态对象年龄判定</h3><p>​        虚拟机并不是永远要求对象年龄必须达到MaxTenuringThreshold设置的值才能晋升到老年代，如果Survivor中相同年龄所有对象大小的总和大于Survivor空间的一般，年龄大于或者等于该年龄的对象就可以直接进入老年代。</p>
+<h3 id="空间分配担保"><a href="#空间分配担保" class="headerlink" title="空间分配担保"></a>空间分配担保</h3><p>​        发生Minor GC前，虚拟机会检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果这个条件成立，那么Minor GC可以确保安全。如果不成立，虚拟机会查看HandlePromotionFailure设置值是否允许担保失败。如果允许，那么会继续检查老年代最大可用联系空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试进行一次Minor GC,尽管这次Minor GC是有风险的；如果小于，或者HandlePromotionFailure设置不允许冒险，那这时也要改为进行一次Full GC。</p>
+<p>​        JDK 1.6以后，规则变为只要老年代的连续空间大于新生代对象总大小或历次晋升的平均大小就行进行Minor GC，否则进行Full GC。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>​        <u>垃圾收集器与内存分配策略</u>到这里就结束了。后面会将JVM中所有的参数专门整合为一章，方便查找。:small_airplane:</p>
+
+        </div>
+        
+            <ul class="post-copyright">
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/04/05/jvm-GarbageCollection/">【深入理解java虚拟机】-- 垃圾收集器与内存分配策略</a></li>
+                <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/04/05/jvm-GarbageCollection/">https://yingu.site/2020/04/05/jvm-GarbageCollection/</a></li>
+                <li><strong>发布时间：</strong>2020-04-05</li>
+                <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+                </li>
+            </ul>
+        
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/jvm/" rel="tag">jvm</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/zfb.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/wx.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/04/22/JVM-ClassLoading/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">【深入理解java虚拟机】-- 虚拟机类加载机制</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/03/29/jvm-MemoryManagement/">
+                <span class="level-item">【深入理解java虚拟机】-- 自动内存管理机制</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">评论</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: '4e02017ba5f2640526d2',
+        clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
+        id: 'ec064e849ce37921f25d54e15ff38355',
+        repo: 'gitalk-commnet',
+        owner: '330129161',
+        admin: ["330129161"],
+        createIssueManually: false,
+        distractionFreeMode: false
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/avatar.png" alt="yingu">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        yingu
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        stop
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>hang zhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <a href="/archives">
+                        <p class="title has-text-weight-normal">
+                            29
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <a href="/categories">
+                        <p class="title has-text-weight-normal">
+                            13
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <a href="/tags">
+                        <p class="title has-text-weight-normal">
+                            18
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://gitee.com/zero123123" target="_blank" rel="noopener">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/330129161">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="码云" href="https://gitee.com/zero123123">
+                
+                <i class="fab fa-git"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+
+    <div class="card widget" id="toc">
+        <div class="card-content">
+            <div class="menu">
+                <h3 class="menu-label">
+                    目录
+                </h3>
+                <ul class="menu-list"><li>
+        <a class="is-flex" href="#对象是否存活">
+        <span class="has-mr-6">1</span>
+        <span>对象是否存活</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#引用计数法">
+        <span class="has-mr-6">1.1</span>
+        <span>引用计数法</span>
+        </a></li><li>
+        <a class="is-flex" href="#可达性分析算法">
+        <span class="has-mr-6">1.2</span>
+        <span>可达性分析算法</span>
+        </a></li><li>
+        <a class="is-flex" href="#引用">
+        <span class="has-mr-6">1.3</span>
+        <span>引用</span>
+        </a></li><li>
+        <a class="is-flex" href="#对象死亡判定">
+        <span class="has-mr-6">1.4</span>
+        <span>对象死亡判定</span>
+        </a></li><li>
+        <a class="is-flex" href="#回收方法区">
+        <span class="has-mr-6">1.5</span>
+        <span>回收方法区</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#垃圾收集算法">
+        <span class="has-mr-6">2</span>
+        <span>垃圾收集算法</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#标记-清除算法">
+        <span class="has-mr-6">2.1</span>
+        <span>标记-清除算法</span>
+        </a></li><li>
+        <a class="is-flex" href="#复制算法">
+        <span class="has-mr-6">2.2</span>
+        <span>复制算法</span>
+        </a></li><li>
+        <a class="is-flex" href="#标记-整理算法">
+        <span class="has-mr-6">2.3</span>
+        <span>标记-整理算法</span>
+        </a></li><li>
+        <a class="is-flex" href="#分代收集算法">
+        <span class="has-mr-6">2.4</span>
+        <span>分代收集算法</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#hptspot的算法实现">
+        <span class="has-mr-6">3</span>
+        <span>hptspot的算法实现</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#枚举根节点">
+        <span class="has-mr-6">3.1</span>
+        <span>枚举根节点</span>
+        </a></li><li>
+        <a class="is-flex" href="#安全点">
+        <span class="has-mr-6">3.2</span>
+        <span>安全点</span>
+        </a></li><li>
+        <a class="is-flex" href="#安全区域">
+        <span class="has-mr-6">3.3</span>
+        <span>安全区域</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#垃圾收集器">
+        <span class="has-mr-6">4</span>
+        <span>垃圾收集器</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#Serial收集器">
+        <span class="has-mr-6">4.1</span>
+        <span>Serial收集器</span>
+        </a></li><li>
+        <a class="is-flex" href="#ParNew收集器">
+        <span class="has-mr-6">4.2</span>
+        <span>ParNew收集器</span>
+        </a></li><li>
+        <a class="is-flex" href="#Parallel-Scavenge收集器">
+        <span class="has-mr-6">4.3</span>
+        <span>Parallel Scavenge收集器</span>
+        </a></li><li>
+        <a class="is-flex" href="#Serial-Old收集器">
+        <span class="has-mr-6">4.4</span>
+        <span>Serial Old收集器</span>
+        </a></li><li>
+        <a class="is-flex" href="#Parallel-Old">
+        <span class="has-mr-6">4.5</span>
+        <span>Parallel Old</span>
+        </a></li><li>
+        <a class="is-flex" href="#CMS收集器">
+        <span class="has-mr-6">4.6</span>
+        <span>CMS收集器</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#G1收集器">
+        <span class="has-mr-6">5</span>
+        <span>G1收集器</span>
+        </a></li><li>
+        <a class="is-flex" href="#内存分配与回收策略">
+        <span class="has-mr-6">6</span>
+        <span>内存分配与回收策略</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#对象优先在eden分配">
+        <span class="has-mr-6">6.1</span>
+        <span>对象优先在eden分配</span>
+        </a></li><li>
+        <a class="is-flex" href="#大对象直接进入老年代">
+        <span class="has-mr-6">6.2</span>
+        <span>大对象直接进入老年代</span>
+        </a></li><li>
+        <a class="is-flex" href="#长期存活对象进入老年代">
+        <span class="has-mr-6">6.3</span>
+        <span>长期存活对象进入老年代</span>
+        </a></li><li>
+        <a class="is-flex" href="#动态对象年龄判定">
+        <span class="has-mr-6">6.4</span>
+        <span>动态对象年龄判定</span>
+        </a></li><li>
+        <a class="is-flex" href="#空间分配担保">
+        <span class="has-mr-6">6.5</span>
+        <span>空间分配担保</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#总结">
+        <span class="has-mr-6">7</span>
+        <span>总结</span>
+        </a></li></ul>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/jvm/">
+            <span class="level-start">
+                <span class="level-item">jvm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
+            <span class="level-start">
+                <span class="level-item">内存</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/">
+            <span class="level-start">
+                <span class="level-item">工具</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
+            <span class="level-start">
+                <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/redis/">
+            <span class="level-start">
+                <span class="level-item">redis</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E6%9E%B6%E6%9E%84/">
+            <span class="level-start">
+                <span class="level-item">架构</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
+            <span class="level-start">
+                <span class="level-item">源码</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">22</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/spring/">
+            <span class="level-start">
+                <span class="level-item">spring</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+            <span class="level-start">
+                <span class="level-item">线程池</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.67px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/DDD-learn/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg" alt="DDD学习">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:44:54.000Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/DDD-learn/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DDD学习</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%9E%B6%E6%9E%84/">架构</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:31:14.986Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/RedisSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/03/DockerTools/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="Windows下使用Docker启动常用工具">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time></div>
+                    <a href="/2020/05/03/DockerTools/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Windows下使用Docker启动常用工具</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
+                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2021/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2021</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">十二月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">六月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/DDD/">
+                        <span class="tag">DDD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/class/">
+                        <span class="tag">class</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/docker/">
+                        <span class="tag">docker</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/juc/">
+                        <span class="tag">juc</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/jvm/">
+                        <span class="tag">jvm</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/loc/">
+                        <span class="tag">loc</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/redis/">
+                        <span class="tag">redis</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/spring/">
+                        <span class="tag">spring</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
+                        <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9E%B6%E6%9E%84/">
+                        <span class="tag">架构</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
+                        <span class="tag">源码</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+                        <span class="tag">线程池</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%94%81/">
+                        <span class="tag">锁</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">7</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <br>
+                    <img src="/images/logo.png" alt="【深入理解java虚拟机】-- 垃圾收集器与内存分配策略" height="20">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2021 yingu&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <span id="busuanzi_value_site_pv">0</span>次访问
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'https://yingu.site',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8) - yingu的博客</title>
+
+
+    <meta name="description" content="概述​        PriorityBlockingQueue一个无界的带有优先级的动态阻塞队列，插入队列的元素默认情况下采用自然顺序升序排列，如果用户传入了Comparator，那么使用传入的Comparator进行排序。PriorityBlockingQueue内部使用一把锁用于消费，当容量到达阈值时，会自动扩容，扩容时由volatile修饰的allocationSpinLock作为cas自">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)">
+<meta property="og:url" content="https://yingu.site/2020/03/15/PriorityBlockingQueue/index.html">
+<meta property="og:site_name" content="yingu的博客">
+<meta property="og:description" content="概述​        PriorityBlockingQueue一个无界的带有优先级的动态阻塞队列，插入队列的元素默认情况下采用自然顺序升序排列，如果用户传入了Comparator，那么使用传入的Comparator进行排序。PriorityBlockingQueue内部使用一把锁用于消费，当容量到达阈值时，会自动扩容，扩容时由volatile修饰的allocationSpinLock作为cas自">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-24.jpg">
+<meta property="article:published_time" content="2020-03-15T11:09:09.000Z">
+<meta property="article:modified_time" content="2021-07-18T12:31:14.987Z">
+<meta property="article:author" content="yingu">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="阻塞队列">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-24.jpg">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/cs.ico">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="alternate" href="/atom.xml" title="yingu的博客" type="application/atom+xml">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">主页</a>
+                
+                <a class="navbar-item"
+                href="/archives">文章</a>
+                
+                <a class="navbar-item"
+                href="/categories">分类</a>
+                
+                <a class="navbar-item"
+                href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-03-15T11:09:09.000Z">2020-03-15</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    22 分钟 读完 (大约 3239 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>​        <code>PriorityBlockingQueue</code>一个无界的带有优先级的动态阻塞队列，插入队列的元素默认情况下采用自然顺序升序排列，如果用户传入了Comparator，那么使用传入的Comparator进行排序。<code>PriorityBlockingQueue</code>内部使用一把锁用于消费，当容量到达阈值时，会自动扩容，扩容时由<code>volatile</code>修饰的<code>allocationSpinLock</code>作为cas自旋锁的标识（保证扩容操作不会阻塞take操作）。<a id="more"></a></p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/PriorityBlockingQueue.png" alt=""></p>
+<h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PriorityBlockingQueue</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractQueue</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">BlockingQueue</span>&lt;<span class="title">E</span>&gt;, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">5595510919245408276L</span>;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">//队列默认容量</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEFAULT_INITIAL_CAPACITY = <span class="number">11</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//队列最大容量</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MAX_ARRAY_SIZE = Integer.MAX_VALUE - <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//存储元素的数组</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> Object[] queue;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//队列元素个数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> <span class="keyword">int</span> size;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//比较器</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> Comparator&lt;? <span class="keyword">super</span> E&gt; comparator;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//锁用于构建消费的条件锁</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReentrantLock lock;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//用于消费的条件锁</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Condition notEmpty;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//扩容时，作为cas自旋锁的标识</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> <span class="keyword">volatile</span> <span class="keyword">int</span> allocationSpinLock;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//优先级队列</span></span><br><span class="line">    <span class="keyword">private</span> PriorityQueue&lt;E&gt; q;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//无参构造方法，默认容量为DEFAULT_INITIAL_CAPACITY=11</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">PriorityBlockingQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(DEFAULT_INITIAL_CAPACITY, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//带初始化容量的构造方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">PriorityBlockingQueue</span><span class="params">(<span class="keyword">int</span> initialCapacity)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(initialCapacity, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//带初始化容量与比较器的构造方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">PriorityBlockingQueue</span><span class="params">(<span class="keyword">int</span> initialCapacity,</span></span></span><br><span class="line"><span class="function"><span class="params">                             Comparator&lt;? <span class="keyword">super</span> E&gt; comparator)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (initialCapacity &lt; <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">this</span>.lock = <span class="keyword">new</span> ReentrantLock();</span><br><span class="line">    <span class="keyword">this</span>.notEmpty = lock.newCondition();</span><br><span class="line">    <span class="keyword">this</span>.comparator = comparator;</span><br><span class="line">    <span class="keyword">this</span>.queue = <span class="keyword">new</span> Object[initialCapacity];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//带集合的构造方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">PriorityBlockingQueue</span><span class="params">(Collection&lt;? extends E&gt; c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.lock = <span class="keyword">new</span> ReentrantLock();</span><br><span class="line">    <span class="keyword">this</span>.notEmpty = lock.newCondition();</span><br><span class="line">    <span class="comment">//是否需要重建堆(堆它是一个数组，不过满足一个特殊的性质)</span></span><br><span class="line">    <span class="keyword">boolean</span> heapify = <span class="keyword">true</span>; <span class="comment">// true if not known to be in heap order</span></span><br><span class="line">    <span class="comment">//是否需要筛选空值</span></span><br><span class="line">    <span class="keyword">boolean</span> screen = <span class="keyword">true</span>;  <span class="comment">// true if must screen for nulls</span></span><br><span class="line">    <span class="comment">//如果传入的是一个有序集合，那么使用集合本身的比较器</span></span><br><span class="line">    <span class="keyword">if</span> (c <span class="keyword">instanceof</span> SortedSet&lt;?&gt;) &#123;</span><br><span class="line">        SortedSet&lt;? extends E&gt; ss = (SortedSet&lt;? extends E&gt;) c;</span><br><span class="line">        <span class="keyword">this</span>.comparator = (Comparator&lt;? <span class="keyword">super</span> E&gt;) ss.comparator();</span><br><span class="line">        heapify = <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果传入集合是PriorityBlockingQueue类型，则不进行堆有序化</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (c <span class="keyword">instanceof</span> PriorityBlockingQueue&lt;?&gt;) &#123;</span><br><span class="line">        PriorityBlockingQueue&lt;? extends E&gt; pq =</span><br><span class="line">            (PriorityBlockingQueue&lt;? extends E&gt;) c;</span><br><span class="line">        <span class="comment">//使用阻塞队列的比较器</span></span><br><span class="line">        <span class="keyword">this</span>.comparator = (Comparator&lt;? <span class="keyword">super</span> E&gt;) pq.comparator();</span><br><span class="line">        screen = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (pq.getClass() == PriorityBlockingQueue<span class="class">.<span class="keyword">class</span>) // <span class="title">exact</span> <span class="title">match</span></span></span><br><span class="line"><span class="class">            <span class="title">heapify</span> </span>= <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    Object[] a = c.toArray();</span><br><span class="line">    <span class="comment">//记录数组长度</span></span><br><span class="line">    <span class="keyword">int</span> n = a.length;</span><br><span class="line">    <span class="comment">// If c.toArray incorrectly doesn't return Object[], copy it.</span></span><br><span class="line">    <span class="comment">//&lt;1&gt;.如果c.toArray不正确地返回Object[]，请复制它</span></span><br><span class="line">    <span class="keyword">if</span> (a.getClass() != Object[]<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">        <span class="title">a</span> </span>= Arrays.copyOf(a, n, Object[]<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    <span class="comment">//如果传入的集合类型不为有序集合或者PriorityBlockingQueue，那么要校验是否传入null值</span></span><br><span class="line">    <span class="comment">//如果传入的集合中存在null，那么抛出NullPointerException</span></span><br><span class="line">    <span class="comment">// (n == 1 || this.comparator != null) 有两种情况</span></span><br><span class="line">    <span class="comment">//1.</span></span><br><span class="line">    <span class="keyword">if</span> (screen &amp;&amp; (n == <span class="number">1</span> || <span class="keyword">this</span>.comparator != <span class="keyword">null</span>)) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</span><br><span class="line">            <span class="keyword">if</span> (a[i] == <span class="keyword">null</span>)</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//讲a赋值给队列内部储存元素的数组</span></span><br><span class="line">    <span class="keyword">this</span>.queue = a;</span><br><span class="line">    <span class="comment">//设置size为n</span></span><br><span class="line">    <span class="keyword">this</span>.size = n;</span><br><span class="line">    <span class="keyword">if</span> (heapify)</span><br><span class="line">        <span class="comment">//是否堆化</span></span><br><span class="line">        heapify();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="heapify方法"><a href="#heapify方法" class="headerlink" title="heapify方法"></a>heapify方法</h3><p><code>PriorityBlockingQueue</code>内部采用二叉堆来实现。二叉堆是一种特殊的堆，近似完全二叉树。二叉堆有两种堆：最大堆和最小堆。最大堆：父节点的键值总是大于或者等于任何一个子节点的键值；最小堆：父节点的键值总是小于或等于任何一个子节点的键值。而我们的<code>PriorityBlockingQueue</code>就是采用的最小堆。</p>
+<p>二叉堆一般使用数组来表示，不过他是顺序结构存储而不是链式结构。看图：</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E4%BA%8C%E5%8F%89%E5%A0%86.jpg" alt=""></p>
+<p><strong>二叉堆来实现优先队列的特点</strong>：</p>
+<ol>
+<li>一般通过数组存储的逻辑二叉树结构</li>
+<li>要么为最大堆要么为最小堆</li>
+<li>父节点索引位 = （当前节点索引位 - 1 ）/ 1</li>
+<li>左子节点索引位 =  当前节点索引位 * 2 + 1</li>
+<li>右子节点索引位 =  当前节点索引位 * 2 + 2</li>
+<li>最后一个非叶子节点索引位 = 节点数/2  - 1；</li>
+</ol>
+<p><strong>二叉堆的三个操作：</strong></p>
+<ol>
+<li>堆化：将一个完全无序的数组转化为一个符合二叉堆结构的数组</li>
+<li>元素插入：为了不破坏现有的二叉堆结构，插入都是从最后一个元素开始，然后对该节点进行上浮操作</li>
+<li>元素移除：删除节点时从堆顶删除，将最后一个节点置换到堆顶，然后对堆顶的元素进行下沉操作</li>
+</ol>
+<p>通过上面的这些特点，以及最后的四个公式，再来看接下来的代码就要轻松许多。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//heapify就是上面三个操作中的堆化操作</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">heapify</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Object[] array = queue;</span><br><span class="line">    <span class="keyword">int</span> n = size; </span><br><span class="line">    <span class="comment">//找到最后一个非叶子节点，也就是最后一个节点的父节点</span></span><br><span class="line">    <span class="keyword">int</span> half = (n &gt;&gt;&gt; <span class="number">1</span>) - <span class="number">1</span>;</span><br><span class="line">    Comparator&lt;? <span class="keyword">super</span> E&gt; cmp = comparator;</span><br><span class="line">    <span class="comment">//如果比较器为null,那么使用自然排序</span></span><br><span class="line">    <span class="keyword">if</span> (cmp == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">//从half开始向前数，对所有非叶子节点进行下沉操作</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = half; i &gt;= <span class="number">0</span>; i--)</span><br><span class="line">            siftDownComparable(i, (E) array[i], array, n);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = half; i &gt;= <span class="number">0</span>; i--)</span><br><span class="line">            siftDownUsingComparator(i, (E) array[i], array, n, cmp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="节点上浮操作"><a href="#节点上浮操作" class="headerlink" title="节点上浮操作"></a>节点上浮操作</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//对节点进行上浮操作，将新插入到末尾的节点进行上浮操作</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">siftUpComparable</span><span class="params">(<span class="keyword">int</span> k, T x, Object[] array)</span> </span>&#123;</span><br><span class="line">    Comparable&lt;? <span class="keyword">super</span> T&gt; key = (Comparable&lt;? <span class="keyword">super</span> T&gt;) x;</span><br><span class="line">    <span class="comment">//k&gt;0说明还有非子叶节点存在</span></span><br><span class="line">    <span class="keyword">while</span> (k &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//获取父节点的下标</span></span><br><span class="line">        <span class="keyword">int</span> parent = (k - <span class="number">1</span>) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">        <span class="comment">//记录父节点的值</span></span><br><span class="line">        Object e = array[parent];</span><br><span class="line">        <span class="comment">//经过对比后，如果该节点的优先级已经大于父节点，那么不用进行升序了，break跳出</span></span><br><span class="line">        <span class="keyword">if</span> (key.compareTo((T) e) &gt;= <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="comment">//当前下表位置的节点指向父节点</span></span><br><span class="line">        array[k] = e;</span><br><span class="line">        <span class="comment">//k置为parent，接下来通过while会继续向上找，如果此时已经到最顶端了那么</span></span><br><span class="line">        <span class="comment">//k就为0了，就会跳出结束while</span></span><br><span class="line">        k = parent;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//交换最终的节点</span></span><br><span class="line">    array[k] = key;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//跟siftUpComparable逻辑一致,不同点就是使用的是用户指定的Comparator比较器</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">siftUpUsingComparator</span><span class="params">(<span class="keyword">int</span> k, T x, Object[] array,</span></span></span><br><span class="line"><span class="function"><span class="params">                                              Comparator&lt;? <span class="keyword">super</span> T&gt; cmp)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (k &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> parent = (k - <span class="number">1</span>) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">        Object e = array[parent];</span><br><span class="line">        <span class="keyword">if</span> (cmp.compare(x, (T) e) &gt;= <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        array[k] = e;</span><br><span class="line">        k = parent;</span><br><span class="line">    &#125;</span><br><span class="line">    array[k] = x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="节点下沉操作"><a href="#节点下沉操作" class="headerlink" title="节点下沉操作"></a>节点下沉操作</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//下沉操作，从队列中移除堆顶元素，把最后一个叶子节点替换到头部时，需要进行下沉操作</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">siftDownComparable</span><span class="params">(<span class="keyword">int</span> k, T x, Object[] array,</span></span></span><br><span class="line"><span class="function"><span class="params">                                               <span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//如果传入的集合为空，那么就不需要下沉操作了</span></span><br><span class="line">    <span class="keyword">if</span> (n &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        Comparable&lt;? <span class="keyword">super</span> T&gt; key = (Comparable&lt;? <span class="keyword">super</span> T&gt;)x;</span><br><span class="line">        <span class="comment">//记录二叉树上最后一个非叶子节点的下标，如果当前操作的坐标小于half</span></span><br><span class="line">        <span class="comment">//说明k&gt;half说明k现在记录的位置是叶子节点的位置，不用再下沉了</span></span><br><span class="line">        <span class="keyword">int</span> half = n &gt;&gt;&gt; <span class="number">1</span>;           <span class="comment">// loop while a non-leaf</span></span><br><span class="line">        <span class="comment">//k小于half说明可能还需要进行下沉操作</span></span><br><span class="line">        <span class="keyword">while</span> (k &lt; half) &#123;</span><br><span class="line">            <span class="comment">//获取左子节点下标</span></span><br><span class="line">            <span class="keyword">int</span> child = (k &lt;&lt; <span class="number">1</span>) + <span class="number">1</span>; <span class="comment">// assume left child is least</span></span><br><span class="line">            <span class="comment">//记录右子节点</span></span><br><span class="line">            Object c = array[child]; </span><br><span class="line">            <span class="comment">//获取右子节点下标</span></span><br><span class="line">            <span class="keyword">int</span> right = child + <span class="number">1</span>;</span><br><span class="line">            <span class="comment">//如果左边的子节点大于右边的子节点，那么就要用右边的右子节点来交换当前节点</span></span><br><span class="line">            <span class="comment">//（目的就是为了取一个最小值来交换）</span></span><br><span class="line">            <span class="keyword">if</span> (right &lt; n &amp;&amp;</span><br><span class="line">                ((Comparable&lt;? <span class="keyword">super</span> T&gt;) c).compareTo((T) array[right]) &gt; <span class="number">0</span>)</span><br><span class="line">                c = array[child = right];</span><br><span class="line">            <span class="comment">//如果当前节点的值已经小于最小的子节点，那么就不用再进行交换了</span></span><br><span class="line">            <span class="keyword">if</span> (key.compareTo((T) c) &lt;= <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">//讲记录的最小的子节点来跟当前节点交换</span></span><br><span class="line">            array[k] = c;</span><br><span class="line">            <span class="comment">//将k指向较小的子节点，以便于下次while循环</span></span><br><span class="line">            <span class="comment">//因为k跟子元素交换之后，子元素可能还有子元素，所以通过k来指向child</span></span><br><span class="line">            <span class="comment">//以便下次继续进行子节点的交换动作</span></span><br><span class="line">            k = child;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//交换最终的节点</span></span><br><span class="line">        array[k] = key;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//逻辑跟上面的一样</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">siftDownUsingComparator</span><span class="params">(<span class="keyword">int</span> k, T x, Object[] array,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    <span class="keyword">int</span> n,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    Comparator&lt;? <span class="keyword">super</span> T&gt; cmp)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (n &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> half = n &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (k &lt; half) &#123;</span><br><span class="line">            <span class="keyword">int</span> child = (k &lt;&lt; <span class="number">1</span>) + <span class="number">1</span>;</span><br><span class="line">            Object c = array[child];</span><br><span class="line">            <span class="keyword">int</span> right = child + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (right &lt; n &amp;&amp; cmp.compare((T) c, (T) array[right]) &gt; <span class="number">0</span>)</span><br><span class="line">                c = array[child = right];</span><br><span class="line">            <span class="keyword">if</span> (cmp.compare(x, (T) c) &lt;= <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            array[k] = c;</span><br><span class="line">            k = child;</span><br><span class="line">        &#125;</span><br><span class="line">        array[k] = x;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生产方法"><a href="#生产方法" class="headerlink" title="生产方法"></a>生产方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//添加并返回元素到队列头，由offer方法实现，成功后返回true</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> offer(e);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//添加元素到队列头</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">offer</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//队列中不允许存储空值</span></span><br><span class="line">    <span class="keyword">if</span> (e == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">int</span> n, cap;</span><br><span class="line">    Object[] array;</span><br><span class="line">    <span class="comment">//如果当前元素的个数已经&gt;=当前容量，那么就需要扩容</span></span><br><span class="line">    <span class="keyword">while</span> ((n = size) &gt;= (cap = (array = queue).length))</span><br><span class="line">        <span class="comment">//扩容方法</span></span><br><span class="line">        tryGrow(array, cap);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Comparator&lt;? <span class="keyword">super</span> E&gt; cmp = comparator;</span><br><span class="line">        <span class="comment">//如果对比器不存在，那么使用自然排序</span></span><br><span class="line">        <span class="keyword">if</span> (cmp == <span class="keyword">null</span>)</span><br><span class="line">            <span class="comment">//通过上浮，调整堆结构</span></span><br><span class="line">            siftUpComparable(n, e, array);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            siftUpUsingComparator(n, e, array, cmp);</span><br><span class="line">        <span class="comment">//元素数+1</span></span><br><span class="line">        size = n + <span class="number">1</span>;</span><br><span class="line">        <span class="comment">//唤醒一个消费的线程</span></span><br><span class="line">        notEmpty.signal();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//添加元素到队列头，由offer方法实现，成功后返回true</span></span><br><span class="line"><span class="comment">//生产方法永远不会被阻塞</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">    offer(e); <span class="comment">// never need to block</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//添加元素到队列头，由offer方法实现，成功后返回true</span></span><br><span class="line"><span class="comment">//生产方法永远不会被阻塞，timeout和unit参数在本队列不生效，因为生产是不会阻塞的</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">offer</span><span class="params">(E e, <span class="keyword">long</span> timeout, TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> offer(e); <span class="comment">// never need to block</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="tryGrow方法"><a href="#tryGrow方法" class="headerlink" title="tryGrow方法"></a>tryGrow方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">tryGrow</span><span class="params">(Object[] array, <span class="keyword">int</span> oldCap)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//释放锁，保证扩容操作不会阻塞消费</span></span><br><span class="line">    lock.unlock(); <span class="comment">// must release and then re-acquire main lock</span></span><br><span class="line">    Object[] newArray = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">//释放锁后，扩容会出现竞争</span></span><br><span class="line">    <span class="comment">//allocationSpinLock == 0表示当前没有正在扩容的线程</span></span><br><span class="line">    <span class="comment">//通过cas修改allocationSpinLockOffset为1，表示开始扩容</span></span><br><span class="line">    <span class="keyword">if</span> (allocationSpinLock == <span class="number">0</span> &amp;&amp;</span><br><span class="line">        UNSAFE.compareAndSwapInt(<span class="keyword">this</span>, allocationSpinLockOffset,</span><br><span class="line">                                 <span class="number">0</span>, <span class="number">1</span>)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//如果旧的容量&lt;64,那么扩容为原来的2倍+2(容量越小，则增长的越快)，如果原来的容量</span></span><br><span class="line">            <span class="comment">//大于或者等于64，那么扩容为原来的1.5倍</span></span><br><span class="line">            <span class="keyword">int</span> newCap = oldCap + ((oldCap &lt; <span class="number">64</span>) ?</span><br><span class="line">                                   (oldCap + <span class="number">2</span>) : <span class="comment">// grow faster if small</span></span><br><span class="line">                                   (oldCap &gt;&gt; <span class="number">1</span>));</span><br><span class="line">            <span class="comment">//如果扩容后的容量&gt;最大容量</span></span><br><span class="line">            <span class="keyword">if</span> (newCap - MAX_ARRAY_SIZE &gt; <span class="number">0</span>) &#123;    <span class="comment">// possible overflow</span></span><br><span class="line">                <span class="keyword">int</span> minCap = oldCap + <span class="number">1</span>;</span><br><span class="line">                <span class="comment">//minCap &lt; 0，说明minCap整数已经溢出了</span></span><br><span class="line">                <span class="comment">//minCap &gt; MAX_ARRAY_SIZE说明已经超出最大限制了</span></span><br><span class="line">                <span class="keyword">if</span> (minCap &lt; <span class="number">0</span> || minCap &gt; MAX_ARRAY_SIZE)</span><br><span class="line">                    <span class="comment">//抛出异常</span></span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> OutOfMemoryError();</span><br><span class="line">                <span class="comment">//设置新容量为最大容量MAX_ARRAY_SIZE</span></span><br><span class="line">                newCap = MAX_ARRAY_SIZE;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//newCap &gt; oldCap说明扩容的容量还未超过最大容量，</span></span><br><span class="line">            <span class="comment">//queue == array说明是第一次扩容</span></span><br><span class="line">            <span class="comment">//只有满足这个两个条件，才有必要扩容创建新的数组</span></span><br><span class="line">            <span class="keyword">if</span> (newCap &gt; oldCap &amp;&amp; queue == array)</span><br><span class="line">                newArray = <span class="keyword">new</span> Object[newCap];</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">//重置 allocationSpinLock = 0，表示扩容结束</span></span><br><span class="line">            allocationSpinLock = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//newArray == null表示扩容操作被其他线程抢先执行了</span></span><br><span class="line">    <span class="keyword">if</span> (newArray == <span class="keyword">null</span>) <span class="comment">// back off if another thread is allocating</span></span><br><span class="line">        <span class="comment">//让出cpu资源</span></span><br><span class="line">        Thread.yield();</span><br><span class="line">    <span class="comment">//获取锁</span></span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">if</span> (newArray != <span class="keyword">null</span> &amp;&amp; queue == array) &#123;</span><br><span class="line">        <span class="comment">//如果newArray != null &amp;&amp; queue == array，说明queue没有发生变化那么讲新的数组指向queue</span></span><br><span class="line">        queue = newArray;</span><br><span class="line">        <span class="comment">//讲原来的array中的值，复制到新的数组中</span></span><br><span class="line">        System.arraycopy(array, <span class="number">0</span>, newArray, <span class="number">0</span>, oldCap);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="消费方法"><a href="#消费方法" class="headerlink" title="消费方法"></a>消费方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//移除队头元素并返回，如果队列为空返回null</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">poll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//出队</span></span><br><span class="line">        <span class="keyword">return</span> dequeue();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//移除队头元素并返回，如果队列为空阻塞，响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lockInterruptibly();</span><br><span class="line">    E result;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//出队，如果元素为空那么阻塞等待</span></span><br><span class="line">        <span class="keyword">while</span> ( (result = dequeue()) == <span class="keyword">null</span>)</span><br><span class="line">            notEmpty.await();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//移除队头元素并返回，如果队列为空超时阻塞，响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">poll</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> nanos = unit.toNanos(timeout);</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lockInterruptibly();</span><br><span class="line">    E result;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> ( (result = dequeue()) == <span class="keyword">null</span> &amp;&amp; nanos &gt; <span class="number">0</span>)</span><br><span class="line">            nanos = notEmpty.awaitNanos(nanos);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取队头元素，如果队列为空返回null</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">peek</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (size == <span class="number">0</span>) ? <span class="keyword">null</span> : (E) queue[<span class="number">0</span>];</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//元素出队并返回</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> E <span class="title">dequeue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n = size - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (n &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        Object[] array = queue;</span><br><span class="line">        <span class="comment">//记录头节点</span></span><br><span class="line">        E result = (E) array[<span class="number">0</span>];</span><br><span class="line">        <span class="comment">//记录尾节点</span></span><br><span class="line">        E x = (E) array[n];</span><br><span class="line">        <span class="comment">//将尾节点位置置为null</span></span><br><span class="line">        array[n] = <span class="keyword">null</span>;</span><br><span class="line">        Comparator&lt;? <span class="keyword">super</span> E&gt; cmp = comparator;</span><br><span class="line">        <span class="keyword">if</span> (cmp == <span class="keyword">null</span>)</span><br><span class="line">            <span class="comment">//将原本尾节点x从堆顶进行下沉，调整堆结构，此时原本的头节点result会被替换掉</span></span><br><span class="line">            siftDownComparable(<span class="number">0</span>, x, array, n);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            siftDownUsingComparator(<span class="number">0</span>, x, array, n, cmp);</span><br><span class="line">        size = n;</span><br><span class="line">        <span class="comment">//返回被移除的头节点，也就是堆顶</span></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//一次从队列中获取所有元素到指定集合中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">drainTo</span><span class="params">(Collection&lt;? <span class="keyword">super</span> E&gt; c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> drainTo(c, Integer.MAX_VALUE);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//一次性获取指定元素个数到指定集合中，该方法不会阻塞</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">drainTo</span><span class="params">(Collection&lt;? <span class="keyword">super</span> E&gt; c, <span class="keyword">int</span> maxElements)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="keyword">this</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">if</span> (maxElements &lt;= <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//取小值，也就是如果传入的个数超过了队列中已存在的个数，那么以已有的数据为准</span></span><br><span class="line">        <span class="keyword">int</span> n = Math.min(size, maxElements);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            <span class="comment">//将队头的元素添加到集合中</span></span><br><span class="line">            c.add((E) queue[<span class="number">0</span>]); <span class="comment">// In this order, in case add() throws.</span></span><br><span class="line">            <span class="comment">//将队头元素从集合中移除，那么下一次上一步的操作也就是添加新的队头</span></span><br><span class="line">            dequeue();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> n;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+            <ul class="post-copyright">
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/03/15/PriorityBlockingQueue/">【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)</a></li>
+                <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/03/15/PriorityBlockingQueue/">https://yingu.site/2020/03/15/PriorityBlockingQueue/</a></li>
+                <li><strong>发布时间：</strong>2020-03-15</li>
+                <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+                </li>
+            </ul>
+        
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/java/" rel="tag">java</a>, <a class="has-link-grey -link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a>, <a class="has-link-grey -link" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" rel="tag">阻塞队列</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/zfb.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/wx.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/03/16/DelayQueue/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">【阻塞队列】-- DelayQueue源码解析(jdk1.8)</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/03/15/LinkedBlockingDeque/">
+                <span class="level-item">【阻塞队列】-- LinkedBlockingDeque源码解析(jdk1.8)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">评论</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: '4e02017ba5f2640526d2',
+        clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
+        id: 'c0f28c1d645d50591c84af167ff375bf',
+        repo: 'gitalk-commnet',
+        owner: '330129161',
+        admin: ["330129161"],
+        createIssueManually: false,
+        distractionFreeMode: false
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/avatar.png" alt="yingu">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        yingu
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        stop
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>hang zhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <a href="/archives">
+                        <p class="title has-text-weight-normal">
+                            29
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <a href="/categories">
+                        <p class="title has-text-weight-normal">
+                            13
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <a href="/tags">
+                        <p class="title has-text-weight-normal">
+                            18
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://gitee.com/zero123123" target="_blank" rel="noopener">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/330129161">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="码云" href="https://gitee.com/zero123123">
+                
+                <i class="fab fa-git"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+
+    <div class="card widget" id="toc">
+        <div class="card-content">
+            <div class="menu">
+                <h3 class="menu-label">
+                    目录
+                </h3>
+                <ul class="menu-list"><li>
+        <a class="is-flex" href="#概述">
+        <span class="has-mr-6">1</span>
+        <span>概述</span>
+        </a></li><li>
+        <a class="is-flex" href="#结构">
+        <span class="has-mr-6">2</span>
+        <span>结构</span>
+        </a></li><li>
+        <a class="is-flex" href="#属性">
+        <span class="has-mr-6">3</span>
+        <span>属性</span>
+        </a></li><li>
+        <a class="is-flex" href="#方法">
+        <span class="has-mr-6">4</span>
+        <span>方法</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#构造方法">
+        <span class="has-mr-6">4.1</span>
+        <span>构造方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#heapify方法">
+        <span class="has-mr-6">4.2</span>
+        <span>heapify方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#节点上浮操作">
+        <span class="has-mr-6">4.3</span>
+        <span>节点上浮操作</span>
+        </a></li><li>
+        <a class="is-flex" href="#节点下沉操作">
+        <span class="has-mr-6">4.4</span>
+        <span>节点下沉操作</span>
+        </a></li><li>
+        <a class="is-flex" href="#生产方法">
+        <span class="has-mr-6">4.5</span>
+        <span>生产方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#tryGrow方法">
+        <span class="has-mr-6">4.6</span>
+        <span>tryGrow方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#消费方法">
+        <span class="has-mr-6">4.7</span>
+        <span>消费方法</span>
+        </a></li></ul></li></ul>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/jvm/">
+            <span class="level-start">
+                <span class="level-item">jvm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
+            <span class="level-start">
+                <span class="level-item">内存</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/">
+            <span class="level-start">
+                <span class="level-item">工具</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
+            <span class="level-start">
+                <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/redis/">
+            <span class="level-start">
+                <span class="level-item">redis</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E6%9E%B6%E6%9E%84/">
+            <span class="level-start">
+                <span class="level-item">架构</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
+            <span class="level-start">
+                <span class="level-item">源码</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">22</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/spring/">
+            <span class="level-start">
+                <span class="level-item">spring</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+            <span class="level-start">
+                <span class="level-item">线程池</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.67px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/DDD-learn/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg" alt="DDD学习">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:44:54.000Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/DDD-learn/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DDD学习</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%9E%B6%E6%9E%84/">架构</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:31:14.986Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/RedisSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/03/DockerTools/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="Windows下使用Docker启动常用工具">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time></div>
+                    <a href="/2020/05/03/DockerTools/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Windows下使用Docker启动常用工具</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
+                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2021/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2021</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">十二月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">六月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/DDD/">
+                        <span class="tag">DDD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/class/">
+                        <span class="tag">class</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/docker/">
+                        <span class="tag">docker</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/juc/">
+                        <span class="tag">juc</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/jvm/">
+                        <span class="tag">jvm</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/loc/">
+                        <span class="tag">loc</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/redis/">
+                        <span class="tag">redis</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/spring/">
+                        <span class="tag">spring</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
+                        <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9E%B6%E6%9E%84/">
+                        <span class="tag">架构</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
+                        <span class="tag">源码</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+                        <span class="tag">线程池</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%94%81/">
+                        <span class="tag">锁</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">7</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <br>
+                    <img src="/images/logo.png" alt="【阻塞队列】-- PriorityBlockingQueue源码解析(jdk1.8)" height="20">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2021 yingu&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <span id="busuanzi_value_site_pv">0</span>次访问
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'https://yingu.site',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

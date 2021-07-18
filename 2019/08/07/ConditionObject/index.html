@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>ConditionObject源码解析(jdk1.8) - yingu的博客</title>
+
+
+    <meta name="description" content="概述ConditionObject是AQS的内部类，是一个单向队列，提供了条件锁的同步实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ConditionObject源码解析(jdk1.8)">
+<meta property="og:url" content="https://yingu.site/2019/08/07/ConditionObject/index.html">
+<meta property="og:site_name" content="yingu的博客">
+<meta property="og:description" content="概述ConditionObject是AQS的内部类，是一个单向队列，提供了条件锁的同步实现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-14.jpg">
+<meta property="article:published_time" content="2019-08-07T15:10:01.000Z">
+<meta property="article:modified_time" content="2021-07-18T12:31:14.982Z">
+<meta property="article:author" content="yingu">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="并发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-14.jpg">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/cs.ico">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="alternate" href="/atom.xml" title="yingu的博客" type="application/atom+xml">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="ConditionObject源码解析(jdk1.8)" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">主页</a>
+                
+                <a class="navbar-item"
+                href="/archives">文章</a>
+                
+                <a class="navbar-item"
+                href="/categories">分类</a>
+                
+                <a class="navbar-item"
+                href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-08-07T15:10:01.000Z">2019-08-07</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">并发</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    29 分钟 读完 (大约 4300 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                ConditionObject源码解析(jdk1.8)
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>ConditionObject</code>是<code>AQS</code>的内部类，是一个单向队列，提供了条件锁的同步实现。<a id="more"></a> 在一个AQS同步器中，可以定义多个<code>ConditionObject</code>对象，因此AQS中可以存在多个等待队列，根据每个队列的条件不同，控制线程的挂起与唤醒。</p>
+<h2 id="结构特点"><a href="#结构特点" class="headerlink" title="结构特点"></a>结构特点</h2><p>1.实现了<code>Condition</code>中<code>await()</code>,<code>signal()</code>等方法。</p>
+<p>2.实现了 <code>Serializable</code> 接口， 表示 <code>ArrayList</code> 支持序列化的功能 ，可用于网络传输</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/ConditionObject.png" alt=""></p>
+<h2 id="重要属性"><a href="#重要属性" class="headerlink" title="重要属性"></a>重要属性</h2><p><code>ConditionObject</code>是一个FIFO单向队列，队列中每个节点都记录着当前线程的引用。外部类<code>AQS</code>中<code>node</code>节点的<code>nextWaiter</code>指向队列中下一个等待节点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConditionObject</span> <span class="keyword">implements</span> <span class="title">Condition</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="comment">//等待队列头，Node节点在外部类AQS中</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> Node firstWaiter;</span><br><span class="line">	<span class="comment">//等待队列尾</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> Node lastWaiter;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//异常标识符，针对响应中断的await方法，如果用户中断动作发生在signal后，会返回REINTERRUPT</span></span><br><span class="line">    <span class="comment">//表示不会对中断做出响应，只会保留线程中断状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> REINTERRUPT =  <span class="number">1</span>;</span><br><span class="line">    <span class="comment">//抛出异常标识，针对响应中断的await方法，如果用户中断动作发生在signal前，会抛出InterruptedException响应中断</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> THROW_IE    = -<span class="number">1</span>;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h2><h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//无参构造方法，在AQS中创建一个等待队列</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ConditionObject</span><span class="params">()</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="await方法"><a href="#await方法" class="headerlink" title="await方法"></a>await方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//释放持有的锁，阻塞当前线程，不响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">awaitUninterruptibly</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//添加一个新的等待节点</span></span><br><span class="line">    Node node = addConditionWaiter();</span><br><span class="line">    <span class="comment">//释放锁</span></span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">    <span class="keyword">boolean</span> interrupted = <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">//如果node已经在同步队列中，跳出while</span></span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="comment">//将当前线程阻塞，通过signal等方法唤醒后，会判断当前线程在阻塞期间是否被中断</span></span><br><span class="line">        <span class="comment">//进入下一次循环，此时node通过signal等方法后，最终被设置到同步队列中了</span></span><br><span class="line">        LockSupport.park(<span class="keyword">this</span>);</span><br><span class="line">        <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">            <span class="comment">//从这里就可以看出，该方法是不响应中断的</span></span><br><span class="line">            interrupted = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//acquireQueued(node, savedState) 方法，在AQS中已经解析过</span></span><br><span class="line">    <span class="comment">//被其他线程通过signal等方法唤醒后，会通过acquireQueued从同步队列中获取锁</span></span><br><span class="line">    <span class="comment">//如果获取锁失败，判断线程是否被中断，标记中断</span></span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) || interrupted)</span><br><span class="line">        selfInterrupt();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//阻塞等待，将当前线程加入等待队列中，并释放当前锁</span></span><br><span class="line"><span class="comment">//当其他线程调用signal()会重新请求锁，线程被中断有两种情况</span></span><br><span class="line"><span class="comment">//1.线程是在调用signal方法之前被中断，那么抛出异常，响应中断</span></span><br><span class="line"><span class="comment">//2.线程是在调用notity方法之后被中断，那么不会响应中断,只会保留中断状态</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="comment">//如果线程被中断，直接响应</span></span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    <span class="comment">//方法同上awaitUninterruptibly</span></span><br><span class="line">    Node node = addConditionWaiter();</span><br><span class="line">    <span class="comment">//释放等待节点对应的锁</span></span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">    <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//检查当前节点是否在同步队列中</span></span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="comment">//阻塞当前线程，等待被唤醒</span></span><br><span class="line">        LockSupport.park(<span class="keyword">this</span>);</span><br><span class="line">        <span class="comment">//检查是否是由于被中断而唤醒，如果是，则跳出循环</span></span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//在同步队列中获取锁，如果线程中断且中断的方式不是抛出异常，则设置中断后续的处理方式设置为REINTERRUPT</span></span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="comment">//遍历等待队列，移除所有被取消的节点</span></span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>) <span class="comment">// clean up if cancelled</span></span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        <span class="comment">//通过interruptMode判断，线程中断后要处理的模式，是直接设置当前线程的中断状态</span></span><br><span class="line">        <span class="comment">//还是直接抛出InterruptedException</span></span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//阻塞超时到指定秒之后，针对中断的响应与await()方法一致</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">long</span> <span class="title">awaitNanos</span><span class="params">(<span class="keyword">long</span> nanosTimeout)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    Node node = addConditionWaiter();</span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">    <span class="comment">//记录获取锁超时时间</span></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> deadline = System.nanoTime() + nanosTimeout;</span><br><span class="line">    <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            <span class="comment">//将node节点添加到同步队列中</span></span><br><span class="line">            transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//跟独占锁中获取锁超时方法一样，如果距离最后超时时间&lt;spinForTimeoutThreshold,</span></span><br><span class="line">        <span class="comment">//那么不会阻塞，直接进入下一次检查</span></span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &gt;= spinForTimeoutThreshold)</span><br><span class="line">            <span class="comment">//阻塞指定时长</span></span><br><span class="line">            LockSupport.parkNanos(<span class="keyword">this</span>, nanosTimeout);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        nanosTimeout = deadline - System.nanoTime();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//跟await方法一样</span></span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="comment">//返回超时剩余时间</span></span><br><span class="line">    <span class="keyword">return</span> deadline - System.nanoTime();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//阻塞超时到指定日期之前，针对中断的响应与await()方法一致，逻辑基本与awaitNanos一致</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">awaitUntil</span><span class="params">(Date deadline)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="comment">//获取指定日期毫秒数</span></span><br><span class="line">    <span class="keyword">long</span> abstime = deadline.getTime();</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    Node node = addConditionWaiter();</span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">    <span class="keyword">boolean</span> timedout = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (System.currentTimeMillis() &gt; abstime) &#123;</span><br><span class="line">            timedout = transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//阻塞到指定时间</span></span><br><span class="line">        LockSupport.parkUntil(<span class="keyword">this</span>, abstime);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="keyword">return</span> !timedout;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//阻塞到指定时长，可以设置时长单位，逻辑基本与await()方法一致</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">await</span><span class="params">(<span class="keyword">long</span> time, TimeUnit unit)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="comment">//计算超时时间</span></span><br><span class="line">    <span class="keyword">long</span> nanosTimeout = unit.toNanos(time);</span><br><span class="line">    <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    Node node = addConditionWaiter();</span><br><span class="line">    <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">long</span> deadline = System.nanoTime() + nanosTimeout;</span><br><span class="line">    <span class="keyword">boolean</span> timedout = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">            timedout = transferAfterCancelledWait(node);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (nanosTimeout &gt;= spinForTimeoutThreshold)</span><br><span class="line">            LockSupport.parkNanos(<span class="keyword">this</span>, nanosTimeout);</span><br><span class="line">        <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        nanosTimeout = deadline - System.nanoTime();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">        interruptMode = REINTERRUPT;</span><br><span class="line">    <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>)</span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">    <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">        reportInterruptAfterWait(interruptMode);</span><br><span class="line">    <span class="keyword">return</span> !timedout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="addConditionWaiter方法"><a href="#addConditionWaiter方法" class="headerlink" title="addConditionWaiter方法"></a>addConditionWaiter方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//添加一个等待节点，如果队尾节点已经被移动到同步队列中，</span></span><br><span class="line"><span class="comment">//那么遍历等待队列移除所有移动到同步队列中的节点</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">addConditionWaiter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//记录尾节点</span></span><br><span class="line">    Node t = lastWaiter;</span><br><span class="line">    <span class="comment">//如果等待队列存在，并且节点的状态不为Node.CONDITION（说明该节点被其他线程唤醒移动到同步队列中了）</span></span><br><span class="line">    <span class="keyword">if</span> (t != <span class="keyword">null</span> &amp;&amp; t.waitStatus != Node.CONDITION) &#123;</span><br><span class="line">        <span class="comment">//将所有已经移动到同步队列中的节点从等待队列中移除</span></span><br><span class="line">        unlinkCancelledWaiters();</span><br><span class="line">        t = lastWaiter;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//创建一个等待节点</span></span><br><span class="line">    Node node = <span class="keyword">new</span> Node(Thread.currentThread(), Node.CONDITION);</span><br><span class="line">    <span class="keyword">if</span> (t == <span class="keyword">null</span>)</span><br><span class="line">        <span class="comment">//如果等待队列不存在，那么设置等待队列头</span></span><br><span class="line">        firstWaiter = node;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment">//将创建的等待节点链接到等待队列尾</span></span><br><span class="line">        t.nextWaiter = node;</span><br><span class="line">    <span class="comment">//将队尾指向创建的新节点</span></span><br><span class="line">    lastWaiter = node;</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="unlinkCancelledWaiters方法"><a href="#unlinkCancelledWaiters方法" class="headerlink" title="unlinkCancelledWaiters方法"></a>unlinkCancelledWaiters方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//将所有已经移动到同步队列中的节点从等待队列中移除</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">unlinkCancelledWaiters</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//记录等待队列中的头节点</span></span><br><span class="line">    Node t = firstWaiter;</span><br><span class="line">    <span class="comment">//记录状态为Node.CONDITION遍历的最后一个节点</span></span><br><span class="line">    Node trail = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">//遍历等待队列</span></span><br><span class="line">    <span class="keyword">while</span> (t != <span class="keyword">null</span>) &#123;</span><br><span class="line">        Node next = t.nextWaiter;</span><br><span class="line">        <span class="comment">//如果该节点已经被转移到同步队列中</span></span><br><span class="line">        <span class="keyword">if</span> (t.waitStatus != Node.CONDITION) &#123;</span><br><span class="line">            <span class="comment">//从队列中移出</span></span><br><span class="line">            t.nextWaiter = <span class="keyword">null</span>;</span><br><span class="line">            <span class="comment">//trail == null，说明移除的是队头</span></span><br><span class="line">            <span class="keyword">if</span> (trail == <span class="keyword">null</span>)</span><br><span class="line">                <span class="comment">//记录新的队头</span></span><br><span class="line">                firstWaiter = next;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                trail.nextWaiter = next;</span><br><span class="line">            <span class="comment">//next == null说明当前已经到队尾了</span></span><br><span class="line">            <span class="keyword">if</span> (next == <span class="keyword">null</span>)</span><br><span class="line">                <span class="comment">//设置队尾</span></span><br><span class="line">                lastWaiter = trail;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="comment">//更新trail</span></span><br><span class="line">            trail = t;</span><br><span class="line">        t = next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="checkInterruptWhileWaiting方法"><a href="#checkInterruptWhileWaiting方法" class="headerlink" title="checkInterruptWhileWaiting方法"></a>checkInterruptWhileWaiting方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">checkInterruptWhileWaiting</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//1.Thread.interrupted()判断线程中断状态</span></span><br><span class="line">    <span class="comment">//2.如果线程被中断，通过transferAfterCancelledWait可以知道当前线程被中断是发生在notify之后还是之前，true表示之前，false表示之后</span></span><br><span class="line">    <span class="comment">//3.如果线程已经在同步队列中了，返回THROW_IE，否则返回REINTERRUPT</span></span><br><span class="line">    <span class="comment">//4.如果线程未被中断返回0</span></span><br><span class="line">    <span class="keyword">return</span> Thread.interrupted() ?</span><br><span class="line">        (transferAfterCancelledWait(node) ? THROW_IE : REINTERRUPT) :</span><br><span class="line">    <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="reportInterruptAfterWait方法"><a href="#reportInterruptAfterWait方法" class="headerlink" title="reportInterruptAfterWait方法"></a>reportInterruptAfterWait方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//根据标识判断中断方式，是设置线程中断状态，还是直接抛出InterruptedException</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">reportInterruptAfterWait</span><span class="params">(<span class="keyword">int</span> interruptMode)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (interruptMode == THROW_IE)</span><br><span class="line">        <span class="comment">//抛出异常</span></span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (interruptMode == REINTERRUPT)</span><br><span class="line">        <span class="comment">//设置线程中断状态</span></span><br><span class="line">        selfInterrupt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="signal方法"><a href="#signal方法" class="headerlink" title="signal方法"></a>signal方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//唤醒节点，将头节点从等待队列转移到同步队列中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">signal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//在独占锁模式下，状态是否被占用，使用该方法需要先获取锁</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">    Node first = firstWaiter;</span><br><span class="line">    <span class="keyword">if</span> (first != <span class="keyword">null</span>)</span><br><span class="line">        <span class="comment">//唤醒队头</span></span><br><span class="line">        doSignal(first);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//唤醒所有节点</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">signalAll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//在独占锁模式下，状态是否被占用，使用该方法需要先获取锁</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">    Node first = firstWaiter;</span><br><span class="line">    <span class="keyword">if</span> (first != <span class="keyword">null</span>)</span><br><span class="line">        <span class="comment">//唤醒所有节点</span></span><br><span class="line">        doSignalAll(first);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//唤醒等待节点</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doSignal</span><span class="params">(Node first)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">//如果下一个等待节点不存在，那么将当前等待节点置为null</span></span><br><span class="line">        <span class="keyword">if</span> ( (firstWaiter = first.nextWaiter) == <span class="keyword">null</span>)</span><br><span class="line">            lastWaiter = <span class="keyword">null</span>;</span><br><span class="line">        <span class="comment">//将当前节点从等待队列中移除</span></span><br><span class="line">        first.nextWaiter = <span class="keyword">null</span>;</span><br><span class="line">        <span class="comment">//将节点从等待队列转移到同步队列中，如果此次操作失败，说明操作的节点已经被其他的线程唤醒</span></span><br><span class="line">        <span class="comment">//（或者在await方法fullyRelease中，释放锁失败，节点状态被设置为取消），那么直接寻找下一个节点</span></span><br><span class="line">        <span class="comment">//如果下一个等待节点存在，那么继续唤醒下一个线程，直到成功或者下一个节点不存在为止</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (!transferForSignal(first) &amp;&amp;</span><br><span class="line">             (first = firstWaiter) != <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//通知所有的等待节点，将等待队列中所有节点转移到同步队列中</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doSignalAll</span><span class="params">(Node first)</span> </span>&#123;</span><br><span class="line">    lastWaiter = firstWaiter = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        Node next = first.nextWaiter;</span><br><span class="line">        first.nextWaiter = <span class="keyword">null</span>;</span><br><span class="line">        transferForSignal(first);</span><br><span class="line">        first = next;</span><br><span class="line">    &#125; <span class="keyword">while</span> (first != <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ConditionObject中其他方法"><a href="#ConditionObject中其他方法" class="headerlink" title="ConditionObject中其他方法"></a>ConditionObject中其他方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//是否为当前同步器持有</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">isOwnedBy</span><span class="params">(AbstractQueuedSynchronizer sync)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> sync == AbstractQueuedSynchronizer.<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等待队列是否存在，也就是说是否还有线程处于wait状态</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">hasWaiters</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//在独占锁模式下，状态是否被占用，也就是说使用此方法，需要先获取锁</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">    <span class="comment">//判断等待队列中，是否存在Node.CONDITION节点</span></span><br><span class="line">    <span class="keyword">for</span> (Node w = firstWaiter; w != <span class="keyword">null</span>; w = w.nextWaiter) &#123;</span><br><span class="line">        <span class="keyword">if</span> (w.waitStatus == Node.CONDITION)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取等待队列的中Node.CONDITION等待节点的长度</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getWaitQueueLength</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//在独占锁模式下，状态是否被占用，也就是说使用此方法，需要先获取锁</span></span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">    <span class="keyword">int</span> n = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//统计节点为Node.CONDITION的数量</span></span><br><span class="line">    <span class="keyword">for</span> (Node w = firstWaiter; w != <span class="keyword">null</span>; w = w.nextWaiter) &#123;</span><br><span class="line">        <span class="keyword">if</span> (w.waitStatus == Node.CONDITION)</span><br><span class="line">            ++n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取所有等待节点的线程</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> Collection&lt;Thread&gt; <span class="title">getWaitingThreads</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isHeldExclusively())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">    ArrayList&lt;Thread&gt; list = <span class="keyword">new</span> ArrayList&lt;Thread&gt;();</span><br><span class="line">    <span class="keyword">for</span> (Node w = firstWaiter; w != <span class="keyword">null</span>; w = w.nextWaiter) &#123;</span><br><span class="line">        <span class="keyword">if</span> (w.waitStatus == Node.CONDITION) &#123;</span><br><span class="line">            Thread t = w.thread;</span><br><span class="line">            <span class="keyword">if</span> (t != <span class="keyword">null</span>)</span><br><span class="line">                list.add(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> list;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="外部类AQS方法"><a href="#外部类AQS方法" class="headerlink" title="外部类AQS方法"></a>外部类AQS方法</h3><h4 id="transferForSignal方法"><a href="#transferForSignal方法" class="headerlink" title="transferForSignal方法"></a>transferForSignal方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//将当前节点从等待队列转移到同步队列中</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">transferForSignal</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//通过cas将节点的WaitStatus设置为0，如果失败说明线程已经中断了(也可能释放锁失败，被取消)，返回false</span></span><br><span class="line">    <span class="keyword">if</span> (!compareAndSetWaitStatus(node, Node.CONDITION, <span class="number">0</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">//通过doSignal等方法唤醒线程后，会将节点的WaitStatus设置为0，之后加入到同步节点末尾</span></span><br><span class="line">    <span class="comment">//添加到同步队列末尾，返回原同步队列中的尾节点</span></span><br><span class="line">    Node p = enq(node);</span><br><span class="line">    <span class="comment">//判断原尾节点waitStatus，如果ws &gt; 0，说明为CANCELLED状态，节点被取消</span></span><br><span class="line">    <span class="comment">//设置原尾节点waitStatus为Node.SIGNAL，表示被释放后，要唤醒当前节点</span></span><br><span class="line">    <span class="comment">//如果设置waitStatus失败，说明节点的线程已经被取消</span></span><br><span class="line">    <span class="comment">//此时原尾节点p的ws值为1（判断了ws&gt;0之后被取消的），unpark后，后续同步队列通过自旋，获取锁</span></span><br><span class="line">    <span class="keyword">int</span> ws = p.waitStatus;</span><br><span class="line">    <span class="keyword">if</span> (ws &gt; <span class="number">0</span> || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))</span><br><span class="line">        LockSupport.unpark(node.thread);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="isHeldExclusively方法"><a href="#isHeldExclusively方法" class="headerlink" title="isHeldExclusively方法"></a>isHeldExclusively方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在独占锁模式下，状态是否被占用。留给子类实现，如果返回false，也就是说未被占用</span></span><br><span class="line"><span class="comment">//那么使用过if (!isHeldExclusively()) throw new IllegalMonitorStateException()；的方法</span></span><br><span class="line"><span class="comment">//最终都会抛出IllegalMonitorStateException，因此我们在使用这些方法之前，必须先获取锁</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">isHeldExclusively</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="fullyRelease方法"><a href="#fullyRelease方法" class="headerlink" title="fullyRelease方法"></a>fullyRelease方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//释放持有当前节点的所有锁</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">int</span> <span class="title">fullyRelease</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> failed = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//获取当前锁状态</span></span><br><span class="line">        <span class="keyword">int</span> savedState = getState();</span><br><span class="line">        <span class="comment">//释放锁</span></span><br><span class="line">        <span class="keyword">if</span> (release(savedState)) &#123;</span><br><span class="line">            failed = <span class="keyword">false</span>;</span><br><span class="line">            <span class="comment">//返回锁状态</span></span><br><span class="line">            <span class="keyword">return</span> savedState;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//释放锁失败，抛出异常</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (failed)</span><br><span class="line">            <span class="comment">//如果释放锁失败，设置node节点等待状态为Node.CANCELLED，表示被取消</span></span><br><span class="line">            <span class="comment">//被取消后，该节点一样会被转移到同步队列中</span></span><br><span class="line">            node.waitStatus = Node.CANCELLED;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="isOnSyncQueue方法"><a href="#isOnSyncQueue方法" class="headerlink" title="isOnSyncQueue方法"></a>isOnSyncQueue方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//是否在同步队列中</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">isOnSyncQueue</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//1.node.waitStatus == Node.CONDITION，表示当前节点在等待队列中</span></span><br><span class="line">    <span class="comment">//2.node.prev == null，等待队列是单向节点，没有前驱节点的，说明该节点在等待队列中</span></span><br><span class="line">    <span class="keyword">if</span> (node.waitStatus == Node.CONDITION || node.prev == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">//如果有后继者，说明当前当前节点一定在同步队列中（等待队列中的节点只有nextWaiter）</span></span><br><span class="line">    <span class="keyword">if</span> (node.next != <span class="keyword">null</span>) <span class="comment">// If has successor, it must be on queue</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    <span class="comment">//node.next == null，也有可能当前node在同步队列中的末尾，去同步队列中查找（从尾节点开始）</span></span><br><span class="line">    <span class="keyword">return</span> findNodeFromTail(node);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//判断节点是否在同步队列中存在，从尾节点开始查找(效率比较高，如果没有其他线程获取锁的情况下，那么尾节点可能就直接匹配上当前节点了)</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">findNodeFromTail</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    Node t = tail;</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">if</span> (t == node)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">if</span> (t == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        t = t.prev;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="transferAfterCancelledWait方法"><a href="#transferAfterCancelledWait方法" class="headerlink" title="transferAfterCancelledWait方法"></a>transferAfterCancelledWait方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//将节点转移到同步队列中</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">transferAfterCancelledWait</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//将节点的WaitStatus设置为0,如果通过checkInterruptWhileWaiting中调用此方法，</span></span><br><span class="line">    <span class="comment">//成功则说明中断发生在signal调用之前，（因为signal方法会将状态设置为0，此处应该会失败），那么加入到同步队列尾端并返回true，从这里我们知道，不管什么时候调用中断，该节点始终会被转移到同步队列中</span></span><br><span class="line">    <span class="keyword">if</span> (compareAndSetWaitStatus(node, Node.CONDITION, <span class="number">0</span>)) &#123;</span><br><span class="line">        <span class="comment">//加入到同步队列末尾</span></span><br><span class="line">        enq(node);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">   	<span class="comment">//如果上面通过cas设置失败，判断是否在同步队列中</span></span><br><span class="line">    <span class="keyword">while</span> (!isOnSyncQueue(node))</span><br><span class="line">        <span class="comment">//退出线程竞争，保证资源不会一直被当前线程占用</span></span><br><span class="line">        Thread.yield();</span><br><span class="line">    <span class="comment">//到这步说明其他线程可能通过signal等方法已经将node转移到同步队列中了</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>上面已经解析了<code>ConditionObject</code>、以及相关联的外部类<code>AQS</code>中的方法。如果已经看过上一章<a href=""https"">AbstractQueuedSynchronizer的解析</a>，再看这章就容易得多。按照惯例，我们将所有方法串起来做一个总结。</p>
+<p>条件等待：</p>
+<ol>
+<li>使用<code>await</code>方法，将线程等待。需要注意的是，在使用<code>await</code>方法之前，我们需要获取重入锁。调用<code>await</code>方法后，通过<code>addConditionWaiter</code>创建一个等待节点A，并加入到等待队列末尾。</li>
+<li>节点入队后，通过<code>fullyRelease</code>方法，释放当前线程持有的重入锁。</li>
+<li>释放锁后，会以自旋的方式通过<code>isOnSyncQueue</code>方法，判断A节点，是否被转移到同步队列中。</li>
+<li>如果A节点，还未转入同步队列，那么通过<code>LockSupport.park</code>阻塞当前线程，等待被唤醒。</li>
+<li>被唤醒后，通过<code>checkInterruptWhileWaiting</code>方法，检查是否是由于被中断而唤醒，如果被中断唤醒，会通过<code>transferAfterCancelledWait</code>判断是在调用<code>signal</code>之前被中断，还是调用<code>signal</code>之后被中断。如果是，则跳出循环，退出自旋。</li>
+<li>如果判断是通过<code>signal</code>方式唤醒，那么会进入下一次自旋，此时节点A已经被转移到同步队列中了，也会退出自旋。</li>
+<li>退出自旋后，通过<code>acquireQueued</code>方法，自旋从同步队列中获取锁(上一章AQS中已经详细解析了，<code>acquireQueued</code>方法)。<code>acquireQueued</code>方法结束后，判断记录的<code>interruptMode</code>中断模式，如果<code>interruptMode != THROW_IE</code>，那么将<code>interruptMode = REINTERRUPT</code>，表示方法结束后，只需要记录中断状态就行。</li>
+<li>如果A后面还有下一个等待节点。那么通过<code>unlinkCancelledWaiters</code>方法，将等待节点中所有被取消的节点清除</li>
+</ol>
+<p>条件唤醒：</p>
+<ol>
+<li>通过使用<code>signal</code>方法，唤醒节点线程。调用<code>signal</code>方法后，会通过<code>isHeldExclusively</code>判断当前是否已经持有独占锁。如果没有就会抛出<code>IllegalMonitorStateException</code>异常。从这里就可以看出，要想使用<code>signal</code>必须先获取重入锁。</li>
+<li>唤醒等待节点头A，如果节点A没有后驱节点，那么将A节点置为null，否则后驱节点记录为新的头节点，并将A节点从等待队列中移除。</li>
+<li><code>transferForSignal</code>中通过cas设置A的<code>waitStatus</code>为0。如果设置失败，说明线程已经中断了(也可能释放锁失败，A节点被取消了)，返回false后，<code>signal</code>会向等待队列后面查找节点，直到节点被转移成功为止。</li>
+<li>cas设置成功后，会将A节点转移到同步队列队尾，并返回旧的队尾。如果旧的队尾的<code>waitStatus</code>&gt; 0(表示被取消)，或者设置<code>waitStatus</code>为<code>Node.SIGNAL</code>失败，那么A将不会被唤醒，那么通过<code>LockSupport.unpark</code>唤醒当前线程(此时程序会执行上面的第4步，判断是否中断，自旋获取锁)，后续同步队列通过自旋，获取锁。</li>
+</ol>
+
+        </div>
+        
+            <ul class="post-copyright">
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2019/08/07/ConditionObject/">ConditionObject源码解析(jdk1.8)</a></li>
+                <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2019/08/07/ConditionObject/">https://yingu.site/2019/08/07/ConditionObject/</a></li>
+                <li><strong>发布时间：</strong>2019-08-07</li>
+                <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+                </li>
+            </ul>
+        
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/java/" rel="tag">java</a>, <a class="has-link-grey -link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a>, <a class="has-link-grey -link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/zfb.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/wx.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/09/24/ReentrantLock/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">ReentrantLock源码解析(jdk1.8)</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/07/26/AbstractQueuedSynchronizer/">
+                <span class="level-item">AbstractQueuedSynchronizer源码解析(jdk1.8)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">评论</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: '4e02017ba5f2640526d2',
+        clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
+        id: '249f0d7b1651f344f8755079c6cadb26',
+        repo: 'gitalk-commnet',
+        owner: '330129161',
+        admin: ["330129161"],
+        createIssueManually: false,
+        distractionFreeMode: false
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/avatar.png" alt="yingu">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        yingu
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        stop
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>hang zhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <a href="/archives">
+                        <p class="title has-text-weight-normal">
+                            29
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <a href="/categories">
+                        <p class="title has-text-weight-normal">
+                            13
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <a href="/tags">
+                        <p class="title has-text-weight-normal">
+                            18
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://gitee.com/zero123123" target="_blank" rel="noopener">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/330129161">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="码云" href="https://gitee.com/zero123123">
+                
+                <i class="fab fa-git"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+
+    <div class="card widget" id="toc">
+        <div class="card-content">
+            <div class="menu">
+                <h3 class="menu-label">
+                    目录
+                </h3>
+                <ul class="menu-list"><li>
+        <a class="is-flex" href="#概述">
+        <span class="has-mr-6">1</span>
+        <span>概述</span>
+        </a></li><li>
+        <a class="is-flex" href="#结构特点">
+        <span class="has-mr-6">2</span>
+        <span>结构特点</span>
+        </a></li><li>
+        <a class="is-flex" href="#重要属性">
+        <span class="has-mr-6">3</span>
+        <span>重要属性</span>
+        </a></li><li>
+        <a class="is-flex" href="#常用方法">
+        <span class="has-mr-6">4</span>
+        <span>常用方法</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#构造方法">
+        <span class="has-mr-6">4.1</span>
+        <span>构造方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#await方法">
+        <span class="has-mr-6">4.2</span>
+        <span>await方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#addConditionWaiter方法">
+        <span class="has-mr-6">4.3</span>
+        <span>addConditionWaiter方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#unlinkCancelledWaiters方法">
+        <span class="has-mr-6">4.4</span>
+        <span>unlinkCancelledWaiters方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#checkInterruptWhileWaiting方法">
+        <span class="has-mr-6">4.5</span>
+        <span>checkInterruptWhileWaiting方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#reportInterruptAfterWait方法">
+        <span class="has-mr-6">4.6</span>
+        <span>reportInterruptAfterWait方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#signal方法">
+        <span class="has-mr-6">4.7</span>
+        <span>signal方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#ConditionObject中其他方法">
+        <span class="has-mr-6">4.8</span>
+        <span>ConditionObject中其他方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#外部类AQS方法">
+        <span class="has-mr-6">4.9</span>
+        <span>外部类AQS方法</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#transferForSignal方法">
+        <span class="has-mr-6">4.9.1</span>
+        <span>transferForSignal方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#isHeldExclusively方法">
+        <span class="has-mr-6">4.9.2</span>
+        <span>isHeldExclusively方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#fullyRelease方法">
+        <span class="has-mr-6">4.9.3</span>
+        <span>fullyRelease方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#isOnSyncQueue方法">
+        <span class="has-mr-6">4.9.4</span>
+        <span>isOnSyncQueue方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#transferAfterCancelledWait方法">
+        <span class="has-mr-6">4.9.5</span>
+        <span>transferAfterCancelledWait方法</span>
+        </a></li></ul></li></ul></li><li>
+        <a class="is-flex" href="#总结">
+        <span class="has-mr-6">5</span>
+        <span>总结</span>
+        </a></li></ul>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/jvm/">
+            <span class="level-start">
+                <span class="level-item">jvm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
+            <span class="level-start">
+                <span class="level-item">内存</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/">
+            <span class="level-start">
+                <span class="level-item">工具</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
+            <span class="level-start">
+                <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/redis/">
+            <span class="level-start">
+                <span class="level-item">redis</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E6%9E%B6%E6%9E%84/">
+            <span class="level-start">
+                <span class="level-item">架构</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
+            <span class="level-start">
+                <span class="level-item">源码</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">22</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/spring/">
+            <span class="level-start">
+                <span class="level-item">spring</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+            <span class="level-start">
+                <span class="level-item">线程池</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.67px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/DDD-learn/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg" alt="DDD学习">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:44:54.000Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/DDD-learn/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DDD学习</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%9E%B6%E6%9E%84/">架构</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:31:14.986Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/RedisSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/03/DockerTools/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="Windows下使用Docker启动常用工具">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time></div>
+                    <a href="/2020/05/03/DockerTools/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Windows下使用Docker启动常用工具</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
+                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2021/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2021</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">十二月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">六月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/DDD/">
+                        <span class="tag">DDD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/class/">
+                        <span class="tag">class</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/docker/">
+                        <span class="tag">docker</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/juc/">
+                        <span class="tag">juc</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/jvm/">
+                        <span class="tag">jvm</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/loc/">
+                        <span class="tag">loc</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/redis/">
+                        <span class="tag">redis</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/spring/">
+                        <span class="tag">spring</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
+                        <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9E%B6%E6%9E%84/">
+                        <span class="tag">架构</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
+                        <span class="tag">源码</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+                        <span class="tag">线程池</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%94%81/">
+                        <span class="tag">锁</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">7</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <br>
+                    <img src="/images/logo.png" alt="ConditionObject源码解析(jdk1.8)" height="20">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2021 yingu&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <span id="busuanzi_value_site_pv">0</span>次访问
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'https://yingu.site',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>【阻塞队列】-- SynchronousQueue源码解析(jdk1.8) - yingu的博客</title>
+
+
+    <meta name="description" content="概述​        SynchronousQueue是一个没有数据缓冲的阻塞队列，生产者线程对其的插入操作put必须等待消费者的移除操作take，反过来也一样。SynchronousQueue中因为不存储元素，所以peek方法永远返回null。 SynchronousQueue支持公平策略。SynchronousQueue看似是阻塞队列中最简单的一种，却是几个解析中最复杂的一个。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)">
+<meta property="og:url" content="https://yingu.site/2020/03/18/SynchronousQueue/index.html">
+<meta property="og:site_name" content="yingu的博客">
+<meta property="og:description" content="概述​        SynchronousQueue是一个没有数据缓冲的阻塞队列，生产者线程对其的插入操作put必须等待消费者的移除操作take，反过来也一样。SynchronousQueue中因为不存储元素，所以peek方法永远返回null。 SynchronousQueue支持公平策略。SynchronousQueue看似是阻塞队列中最简单的一种，却是几个解析中最复杂的一个。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-5.jpg">
+<meta property="article:published_time" content="2020-03-18T10:32:14.000Z">
+<meta property="article:modified_time" content="2021-07-18T12:31:14.990Z">
+<meta property="article:author" content="yingu">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="阻塞队列">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-5.jpg">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/cs.ico">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="alternate" href="/atom.xml" title="yingu的博客" type="application/atom+xml">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">主页</a>
+                
+                <a class="navbar-item"
+                href="/archives">文章</a>
+                
+                <a class="navbar-item"
+                href="/categories">分类</a>
+                
+                <a class="navbar-item"
+                href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-03-18T10:32:14.000Z">2020-03-18</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">阻塞队列</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    31 分钟 读完 (大约 4580 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)
+            
+        </h1>
+        <div class="content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>​        <code>SynchronousQueue</code>是一个没有数据缓冲的阻塞队列，生产者线程对其的插入操作<code>put</code>必须等待消费者的移除操作<code>take</code>，反过来也一样。<code>SynchronousQueue</code>中因为不存储元素，所以peek方法永远返回null。 <code>SynchronousQueue</code>支持公平策略。<code>SynchronousQueue</code>看似是阻塞队列中最简单的一种，却是几个解析中最复杂的一个。<a id="more"></a></p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/SynchronousQueue.png" alt=""></p>
+<ol>
+<li><code>SynchronousQueue</code>实现自<code>BlockingQueue</code>,因此是一个阻塞队列。</li>
+<li><code>SynchronousQueue</code>有一个<code>Transferer</code>内部类，<code>TransferStack</code>与<code>TransferQueue</code>都继承自<code>Transferer</code>，当构建一个非公平队列时，会使用<code>TransferStack</code>以后进先出的顺序访问队列元素，当构建一个公平队列时，则会使用<code>TransferQueue</code>以先进先出的顺序访问队列元素，保证公平。</li>
+</ol>
+<h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SynchronousQueue</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractQueue</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">BlockingQueue</span>&lt;<span class="title">E</span>&gt;, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">3223113410248163686L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//内部类</span></span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Transferer</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">abstract</span> E <span class="title">transfer</span><span class="params">(E e, <span class="keyword">boolean</span> timed, <span class="keyword">long</span> nanos)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取处理器个数，用于判断后续自旋的条件</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> NCPUS = Runtime.getRuntime().availableProcessors();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//指定超时时的自旋次数,如果处理器个数&lt;2，那么自旋次数为0否则为32</span></span><br><span class="line">    <span class="comment">//处理器只有1个的时候，不需要自旋</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> maxTimedSpins = (NCPUS &lt; <span class="number">2</span>) ? <span class="number">0</span> : <span class="number">32</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//未指定超时的自旋次数，默认为maxTimedSpins * 16，最大为512</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> maxUntimedSpins = maxTimedSpins * <span class="number">16</span>;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">//超时时间间隔阈值，当超时时间大于此阈值的时候，才有必要阻塞</span></span><br><span class="line">    <span class="comment">//不然可能阻塞一秒马上超时，不如在这一秒之内直接让他快速重试，避免阻塞带来的效率问题</span></span><br><span class="line">    <span class="comment">//也就是优化了这一步，AQS中也有一样的设计</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> spinForTimeoutThreshold = <span class="number">1000L</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">transient</span> <span class="keyword">volatile</span> Transferer&lt;E&gt; transferer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="TransferStack类"><a href="#TransferStack类" class="headerlink" title="TransferStack类"></a>TransferStack类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//非公平情况下使用栈，后进先出</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TransferStack</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">Transferer</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">//消费模式</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> REQUEST    = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//填充模式</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DATA       = <span class="number">1</span>;</span><br><span class="line">    <span class="comment">//匹配中</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FULFILLING = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//是否正在匹配</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isFulfilling</span><span class="params">(<span class="keyword">int</span> m)</span> </span>&#123; <span class="keyword">return</span> (m &amp; FULFILLING) != <span class="number">0</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">SNode</span> </span>&#123;</span><br><span class="line">        <span class="comment">//下一个等待的节点</span></span><br><span class="line">        <span class="keyword">volatile</span> SNode next;        <span class="comment">// next node in stack</span></span><br><span class="line">        <span class="comment">//匹配的节点</span></span><br><span class="line">        <span class="keyword">volatile</span> SNode match;       <span class="comment">// the node matched to this</span></span><br><span class="line">        <span class="comment">//等待在当前节点上的线程，匹配上之后会释放该线程</span></span><br><span class="line">        <span class="keyword">volatile</span> Thread waiter;     <span class="comment">// to control park/unpark</span></span><br><span class="line">        Object item;                <span class="comment">// data; or null for REQUESTs</span></span><br><span class="line">        <span class="keyword">int</span> mode;</span><br><span class="line">        SNode(Object item) &#123;</span><br><span class="line">            <span class="keyword">this</span>.item = item;</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//如果传入的节点是当前节点的下一个节点，那么替换它为指定节点</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">casNext</span><span class="params">(SNode cmp, SNode val)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> cmp == next &amp;&amp;</span><br><span class="line">                UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, nextOffset, cmp, val);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//尝试讲一个节点与当前匹配，成功后会释放当前节点阻塞的线程</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">tryMatch</span><span class="params">(SNode s)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (match == <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">                UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, matchOffset, <span class="keyword">null</span>, s)) &#123;</span><br><span class="line">                Thread w = waiter;</span><br><span class="line">                <span class="keyword">if</span> (w != <span class="keyword">null</span>) &#123;    <span class="comment">// waiters need at most one unpark</span></span><br><span class="line">                    waiter = <span class="keyword">null</span>;</span><br><span class="line">                    LockSupport.unpark(w);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//匹配上了返回true</span></span><br><span class="line">            <span class="keyword">return</span> match == s;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//尝试取消</span></span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">tryCancel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, matchOffset, <span class="keyword">null</span>, <span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//当前节点是否被取消，当节点的match指向自身的时候，说明被取消了</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">isCancelled</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> match == <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Unsafe mechanics</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> sun.misc.Unsafe UNSAFE;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> matchOffset;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> nextOffset;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//以下静态方法都是根据UNSAFE类获取节点的偏移量，用于CAS更新</span></span><br><span class="line">        <span class="keyword">static</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                UNSAFE = sun.misc.Unsafe.getUnsafe();</span><br><span class="line">                Class&lt;?&gt; k = SNode<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">                matchOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                    (k.getDeclaredField(<span class="string">"match"</span>));</span><br><span class="line">                nextOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                    (k.getDeclaredField(<span class="string">"next"</span>));</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//当前链表头，每次都是从头匹配</span></span><br><span class="line">    <span class="keyword">volatile</span> SNode head;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//设置头</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">casHead</span><span class="params">(SNode h, SNode nh)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> h == head &amp;&amp;</span><br><span class="line">            UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, headOffset, h, nh);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建一个节点，如果s为null，那么e作为s中的item</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> SNode <span class="title">snode</span><span class="params">(SNode s, Object e, SNode next, <span class="keyword">int</span> mode)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (s == <span class="keyword">null</span>) s = <span class="keyword">new</span> SNode(e);</span><br><span class="line">        s.mode = mode;</span><br><span class="line">        s.next = next;</span><br><span class="line">        <span class="keyword">return</span> s;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//插入或者移除元素，移除时e默认为null</span></span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    <span class="function">E <span class="title">transfer</span><span class="params">(E e, <span class="keyword">boolean</span> timed, <span class="keyword">long</span> nanos)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        SNode s = <span class="keyword">null</span>; <span class="comment">// constructed/reused as needed</span></span><br><span class="line">        <span class="comment">//判断当前模式，e为null时为REQUEST模式，否则为DATA模式</span></span><br><span class="line">        <span class="keyword">int</span> mode = (e == <span class="keyword">null</span>) ? REQUEST : DATA;</span><br><span class="line">		<span class="comment">//自旋重试</span></span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="comment">//记录头结点</span></span><br><span class="line">            SNode h = head;</span><br><span class="line">            <span class="comment">//如果头结点为null或者本次模式与头结点模式相同</span></span><br><span class="line">            <span class="keyword">if</span> (h == <span class="keyword">null</span> || h.mode == mode) &#123;  <span class="comment">// empty or same-mode</span></span><br><span class="line">                <span class="comment">//如果配置了超时，判断是否已超时</span></span><br><span class="line">                <span class="keyword">if</span> (timed &amp;&amp; nanos &lt;= <span class="number">0</span>) &#123;      <span class="comment">// can't wait</span></span><br><span class="line">                    <span class="comment">//如果超时，头结点不为null并且没有被取消，那么设置下一个节点为新的头结点</span></span><br><span class="line">                    <span class="keyword">if</span> (h != <span class="keyword">null</span> &amp;&amp; h.isCancelled())</span><br><span class="line">                        casHead(h, h.next);     <span class="comment">// pop cancelled node</span></span><br><span class="line">                    <span class="keyword">else</span></span><br><span class="line">                        <span class="comment">//否则返回null</span></span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                <span class="comment">//如果没有设置超时，或者还未到超时时间，那么创建一个对象设置为新的头部</span></span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (casHead(h, s = snode(s, e, h, mode))) &#123;</span><br><span class="line">                    <span class="comment">//等待被填充，填充完成后返回匹配节点</span></span><br><span class="line">                    SNode m = awaitFulfill(s, timed, nanos);</span><br><span class="line">                    <span class="comment">//如果匹配节点与等待的节点相同，说明被取消了，需要清理掉节点</span></span><br><span class="line">                    <span class="keyword">if</span> (m == s) &#123;               <span class="comment">// wait was cancelled</span></span><br><span class="line">                        clean(s);</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="comment">//到这里说明匹配成功了，如果当前头部不为null，并且h.next == s</span></span><br><span class="line">                    <span class="comment">//这里是等待匹配的，因此匹配节点应该是头结点，</span></span><br><span class="line">                    <span class="comment">//头结点后面的节点就是我们被匹配的节点</span></span><br><span class="line">                    <span class="keyword">if</span> ((h = head) != <span class="keyword">null</span> &amp;&amp; h.next == s)</span><br><span class="line">                        <span class="comment">//设置新的头结点，也就是s后面的节点</span></span><br><span class="line">                        casHead(h, s.next);     <span class="comment">// help s's fulfiller</span></span><br><span class="line">                    <span class="comment">//如果为消费模式，那么返回匹配的元素</span></span><br><span class="line">                    <span class="keyword">return</span> (E) ((mode == REQUEST) ? m.item : s.item);</span><br><span class="line">                &#125;</span><br><span class="line">             <span class="comment">//如果头结点还没有进行匹配</span></span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!isFulfilling(h.mode)) &#123; <span class="comment">// try to fulfill</span></span><br><span class="line">                <span class="comment">//如果头结点被取消，那么设置下一个元素为头结点</span></span><br><span class="line">                <span class="keyword">if</span> (h.isCancelled())            <span class="comment">// already cancelled</span></span><br><span class="line">                    casHead(h, h.next);         <span class="comment">// pop and retry</span></span><br><span class="line">                <span class="comment">//设置新的头结点，FULFILLING|mode得到的值要么为2，要么为3</span></span><br><span class="line">                <span class="comment">//通过isFulfilling得到的都是正在匹配</span></span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (casHead(h, s=snode(s, e, h, FULFILLING|mode))) &#123;</span><br><span class="line">                    <span class="keyword">for</span> (;;) &#123; <span class="comment">// loop until matched or waiters disappear</span></span><br><span class="line">                        <span class="comment">//记录s的下一个节点m,也就是s要匹配的节点</span></span><br><span class="line">                        SNode m = s.next;       <span class="comment">// m is s's match</span></span><br><span class="line">                        <span class="comment">//如果m=null,说明被其他节点抢先给匹配了,</span></span><br><span class="line">                        <span class="comment">//并且已经没有其他在等待匹配的节点了</span></span><br><span class="line">                        <span class="keyword">if</span> (m == <span class="keyword">null</span>) &#123;        <span class="comment">// all waiters are gone</span></span><br><span class="line">                            <span class="comment">//将头结点置为null，下一次自旋会重新生成，接着往下看</span></span><br><span class="line">                            casHead(s, <span class="keyword">null</span>);   <span class="comment">// pop fulfill node</span></span><br><span class="line">                            <span class="comment">//将s置为null,进行下一次自旋</span></span><br><span class="line">                            s = <span class="keyword">null</span>;           <span class="comment">// use new node next time</span></span><br><span class="line">                            <span class="keyword">break</span>;              <span class="comment">// restart main loop</span></span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="comment">//记录m的下一个节点</span></span><br><span class="line">                        SNode mn = m.next;</span><br><span class="line">                        <span class="comment">//进行匹配，tryMatch方法中匹配成功后会释放m中阻塞的线程</span></span><br><span class="line">                        <span class="keyword">if</span> (m.tryMatch(s)) &#123;</span><br><span class="line">                            <span class="comment">//匹配成功后，mn应该置为新的头结点</span></span><br><span class="line">                            casHead(s, mn);     <span class="comment">// pop both s and m</span></span><br><span class="line">                            <span class="comment">//根据模式返回匹配的元素</span></span><br><span class="line">                            <span class="keyword">return</span> (E) ((mode == REQUEST) ? m.item : s.item);</span><br><span class="line">                        &#125; <span class="keyword">else</span>                  <span class="comment">// lost match</span></span><br><span class="line">                            <span class="comment">//如果匹配失败，说明m被其他节点匹配上了</span></span><br><span class="line">                            <span class="comment">//将m从栈中移除，s将对下一个节点进行匹配（也就是mn）</span></span><br><span class="line">                            s.casNext(m, mn);   <span class="comment">// help unlink</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//如果头结点正在匹配中</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;                            <span class="comment">// help a fulfiller</span></span><br><span class="line">                <span class="comment">//记录头结点的下一个节点，也就是跟头结点进行匹配的节点m</span></span><br><span class="line">                SNode m = h.next;               <span class="comment">// m is h's match</span></span><br><span class="line">                <span class="comment">//如果m为null</span></span><br><span class="line">                <span class="keyword">if</span> (m == <span class="keyword">null</span>)                  <span class="comment">// waiter is gone</span></span><br><span class="line">                    <span class="comment">//说明后面没有等待节点了，那么将头结点置为null,继续下一次自旋</span></span><br><span class="line">                    casHead(h, <span class="keyword">null</span>);           <span class="comment">// pop fulfilling node</span></span><br><span class="line">                <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">//记录m的被匹配的下一个节点</span></span><br><span class="line">                    SNode mn = m.next;</span><br><span class="line">                    <span class="comment">//帮助m与h进行匹配</span></span><br><span class="line">                    <span class="keyword">if</span> (m.tryMatch(h))          <span class="comment">// help match</span></span><br><span class="line">                        <span class="comment">//成功后设置新的头结点为mn</span></span><br><span class="line">                        casHead(h, mn);         <span class="comment">// pop both h and m</span></span><br><span class="line">                    <span class="keyword">else</span>                        <span class="comment">// lost match</span></span><br><span class="line">                        <span class="comment">//如果匹配失败，说明m被其他节点匹配上了</span></span><br><span class="line">                        <span class="comment">//将m从栈中移除，h将对下一个节点进行匹配（也就是mn）</span></span><br><span class="line">                        h.casNext(m, mn);       <span class="comment">// help unlink</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">//等待被填充</span></span><br><span class="line">    <span class="function">SNode <span class="title">awaitFulfill</span><span class="params">(SNode s, <span class="keyword">boolean</span> timed, <span class="keyword">long</span> nanos)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//记录超时时间</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">long</span> deadline = timed ? System.nanoTime() + nanos : <span class="number">0L</span>;</span><br><span class="line">        Thread w = Thread.currentThread();</span><br><span class="line">        <span class="comment">//判断当前自旋次数，如果设置了超时则用maxTimedSpins，否则使用maxUntimedSpins</span></span><br><span class="line">        <span class="keyword">int</span> spins = (shouldSpin(s) ?</span><br><span class="line">                     (timed ? maxTimedSpins : maxUntimedSpins) : <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="comment">//如果当前线程被中断，那么设置该节点为取消</span></span><br><span class="line">            <span class="keyword">if</span> (w.isInterrupted())</span><br><span class="line">                s.tryCancel();</span><br><span class="line">            <span class="comment">//记录匹配的节点</span></span><br><span class="line">            SNode m = s.match;</span><br><span class="line">            <span class="comment">//&lt;1&gt;.如果不为null，直接返回</span></span><br><span class="line">            <span class="keyword">if</span> (m != <span class="keyword">null</span>)</span><br><span class="line">                <span class="keyword">return</span> m;</span><br><span class="line">            <span class="comment">//如果配置了超时</span></span><br><span class="line">            <span class="keyword">if</span> (timed) &#123;</span><br><span class="line">                nanos = deadline - System.nanoTime();</span><br><span class="line">                <span class="comment">//检查是否超时，如果超时会取消当前节点，会将节点的match指向自身</span></span><br><span class="line">                <span class="comment">//然后下次自旋，上面&lt;1&gt;处就会直接返回</span></span><br><span class="line">                <span class="keyword">if</span> (nanos &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">                    s.tryCancel();</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">         	<span class="comment">//检查自旋次数是否已经用完</span></span><br><span class="line">            <span class="keyword">if</span> (spins &gt; <span class="number">0</span>)</span><br><span class="line">                <span class="comment">//判断是否应该自旋</span></span><br><span class="line">                spins = shouldSpin(s) ? (spins-<span class="number">1</span>) : <span class="number">0</span>;</span><br><span class="line">            <span class="comment">//记录节点上等待的线程</span></span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (s.waiter == <span class="keyword">null</span>)</span><br><span class="line">                s.waiter = w; <span class="comment">// establish waiter so can park next iter</span></span><br><span class="line">            <span class="comment">//如果没有配置超时，那么直接阻塞</span></span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (!timed)</span><br><span class="line">                LockSupport.park(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">//如果配置超时了，那么超时阻塞</span></span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (nanos &gt; spinForTimeoutThreshold)</span><br><span class="line">                LockSupport.parkNanos(<span class="keyword">this</span>, nanos);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果当前节点为头部，或者头部为null，又或者当前正在匹配中，那么还需要自旋</span></span><br><span class="line">    <span class="comment">//这种时候说明很快就能匹配上了，不需要阻塞</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">shouldSpin</span><span class="params">(SNode s)</span> </span>&#123;</span><br><span class="line">        SNode h = head;</span><br><span class="line">        <span class="keyword">return</span> (h == s || h == <span class="keyword">null</span> || isFulfilling(h.mode));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//节点被取消后需要清除</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">clean</span><span class="params">(SNode s)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//将节点的item、waiter置为null</span></span><br><span class="line">        s.item = <span class="keyword">null</span>;   <span class="comment">// forget item</span></span><br><span class="line">        s.waiter = <span class="keyword">null</span>; <span class="comment">// forget thread</span></span><br><span class="line">		<span class="comment">//记录要移除节点的下一个节点past</span></span><br><span class="line">        SNode past = s.next;</span><br><span class="line">        <span class="comment">//&lt;1&gt;如果past存在并且被取消，那么找到past后面正常的节点</span></span><br><span class="line">        <span class="keyword">if</span> (past != <span class="keyword">null</span> &amp;&amp; past.isCancelled())</span><br><span class="line">            <span class="comment">//那么继续向下，直到找到一个正常的节点</span></span><br><span class="line">            past = past.next;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//从头节点开始清理</span></span><br><span class="line">        <span class="comment">//如果头节点不为null，并且不是当前找到的最后一个正常的节点，</span></span><br><span class="line">        <span class="comment">//并且头部节点被取消了，那么设置p的下一个节点为头部</span></span><br><span class="line">        <span class="comment">//此时新的头节点还是被取消之后，这步还会继续进行，直到头部被置为null，</span></span><br><span class="line">        <span class="comment">//或者置为一个正常的的节点，上面的&lt;1&gt;处，是从past后面开始找，这里是从head从后面开始找</span></span><br><span class="line">        SNode p;</span><br><span class="line">        <span class="keyword">while</span> ((p = head) != <span class="keyword">null</span> &amp;&amp; p != past &amp;&amp; p.isCancelled())</span><br><span class="line">            casHead(p, p.next);</span><br><span class="line">		<span class="comment">//如果P不为null，说明经过了上一步的while改变了p的值，并且p为一个正常的节点</span></span><br><span class="line">      	<span class="comment">//如果p != past，说明p与past之间还有其他节点，针对这中间节点再做一次清理</span></span><br><span class="line">        <span class="comment">//直到清理完整个队列或者past位置为止</span></span><br><span class="line">        <span class="keyword">while</span> (p != <span class="keyword">null</span> &amp;&amp; p != past) &#123;</span><br><span class="line">            SNode n = p.next;</span><br><span class="line">            <span class="keyword">if</span> (n != <span class="keyword">null</span> &amp;&amp; n.isCancelled())</span><br><span class="line">                p.casNext(n, n.next);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                p = n;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Unsafe mechanics</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> sun.misc.Unsafe UNSAFE;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> headOffset;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            UNSAFE = sun.misc.Unsafe.getUnsafe();</span><br><span class="line">            Class&lt;?&gt; k = TransferStack<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">            headOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                (k.getDeclaredField(<span class="string">"head"</span>));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="TransferQueue类"><a href="#TransferQueue类" class="headerlink" title="TransferQueue类"></a>TransferQueue类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//公平情况下使用队列，先进先出</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TransferQueue</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">Transferer</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">QNode</span> </span>&#123;</span><br><span class="line">        <span class="comment">//指向队列中的下一个节点</span></span><br><span class="line">        <span class="keyword">volatile</span> QNode next;          <span class="comment">// next node in queue</span></span><br><span class="line">        <span class="comment">//存储元素</span></span><br><span class="line">        <span class="keyword">volatile</span> Object item;         <span class="comment">// CAS'ed to or from null</span></span><br><span class="line">        <span class="comment">//节点中的等待线程</span></span><br><span class="line">        <span class="keyword">volatile</span> Thread waiter;       <span class="comment">// to control park/unpark</span></span><br><span class="line">        <span class="comment">//是否为插入操作</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">boolean</span> isData;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//节点构造方法</span></span><br><span class="line">        QNode(Object item, <span class="keyword">boolean</span> isData) &#123;</span><br><span class="line">            <span class="keyword">this</span>.item = item;</span><br><span class="line">            <span class="keyword">this</span>.isData = isData;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//通过cas设置下一个节点</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">casNext</span><span class="params">(QNode cmp, QNode val)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> next == cmp &amp;&amp;</span><br><span class="line">                UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, nextOffset, cmp, val);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//通过cas设置节点的item</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">casItem</span><span class="params">(Object cmp, Object val)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> item == cmp &amp;&amp;</span><br><span class="line">                UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, itemOffset, cmp, val);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment">//尝试取消，节点中的item指向自身，说明被取消</span></span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">tryCancel</span><span class="params">(Object cmp)</span> </span>&#123;</span><br><span class="line">            UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, itemOffset, cmp, <span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//判断是否已经取消</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">isCancelled</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> item == <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 节点是否从已经从队列中移除</span></span><br><span class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">isOffList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> next == <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Unsafe mechanics</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> sun.misc.Unsafe UNSAFE;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> itemOffset;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> nextOffset;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">static</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                UNSAFE = sun.misc.Unsafe.getUnsafe();</span><br><span class="line">                Class&lt;?&gt; k = QNode<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">                itemOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                    (k.getDeclaredField(<span class="string">"item"</span>));</span><br><span class="line">                nextOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                    (k.getDeclaredField(<span class="string">"next"</span>));</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//队列头节点</span></span><br><span class="line">    <span class="keyword">transient</span> <span class="keyword">volatile</span> QNode head;</span><br><span class="line">    <span class="comment">//队列尾节点</span></span><br><span class="line">    <span class="keyword">transient</span> <span class="keyword">volatile</span> QNode tail;</span><br><span class="line">	<span class="comment">//指向一个被取消但是还没有从队列移除的节点</span></span><br><span class="line">    <span class="keyword">transient</span> <span class="keyword">volatile</span> QNode cleanMe;</span><br><span class="line"></span><br><span class="line">    TransferQueue() &#123;</span><br><span class="line">        <span class="comment">//默认初始化一个哨兵节点</span></span><br><span class="line">        QNode h = <span class="keyword">new</span> QNode(<span class="keyword">null</span>, <span class="keyword">false</span>); <span class="comment">// initialize to dummy node.</span></span><br><span class="line">        head = h;</span><br><span class="line">        tail = h;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//替换头节点</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">advanceHead</span><span class="params">(QNode h, QNode nh)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (h == head &amp;&amp;</span><br><span class="line">            UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, headOffset, h, nh))</span><br><span class="line">            h.next = h; <span class="comment">// forget old next</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//替换尾节点</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">advanceTail</span><span class="params">(QNode t, QNode nt)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (tail == t)</span><br><span class="line">            UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, tailOffset, t, nt);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">casCleanMe</span><span class="params">(QNode cmp, QNode val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> cleanMe == cmp &amp;&amp;</span><br><span class="line">            UNSAFE.compareAndSwapObject(<span class="keyword">this</span>, cleanMeOffset, cmp, val);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    <span class="function">E <span class="title">transfer</span><span class="params">(E e, <span class="keyword">boolean</span> timed, <span class="keyword">long</span> nanos)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        QNode s = <span class="keyword">null</span>; <span class="comment">// constructed/reused as needed</span></span><br><span class="line">        <span class="comment">//是否是填充数据</span></span><br><span class="line">        <span class="keyword">boolean</span> isData = (e != <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            QNode t = tail;</span><br><span class="line">            QNode h = head;</span><br><span class="line">            <span class="keyword">if</span> (t == <span class="keyword">null</span> || h == <span class="keyword">null</span>)         <span class="comment">// saw uninitialized value</span></span><br><span class="line">                <span class="keyword">continue</span>;                       <span class="comment">// spin</span></span><br><span class="line">			<span class="comment">//如果队列没有其他元素或者模式相同</span></span><br><span class="line">            <span class="keyword">if</span> (h == t || t.isData == isData) &#123; <span class="comment">// empty or same-mode</span></span><br><span class="line">                <span class="comment">//记录下一个节点</span></span><br><span class="line">                QNode tn = t.next;</span><br><span class="line">                <span class="comment">//如果t != tail，说明可能有其他节点插入了队列的尾部，重试</span></span><br><span class="line">                <span class="keyword">if</span> (t != tail)            		<span class="comment">// inconsistent read</span></span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                <span class="comment">//如果t != tail，说明可能有其他节点插入了队列的尾部</span></span><br><span class="line">                <span class="comment">//通过cas更新新的尾部</span></span><br><span class="line">                <span class="keyword">if</span> (tn != <span class="keyword">null</span>) &#123;               <span class="comment">// lagging tail</span></span><br><span class="line">                    advanceTail(t, tn);</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//超时</span></span><br><span class="line">                <span class="keyword">if</span> (timed &amp;&amp; nanos &lt;= <span class="number">0</span>)        <span class="comment">// can't wait</span></span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                <span class="comment">//如果s为null，创建一个新节点</span></span><br><span class="line">                <span class="keyword">if</span> (s == <span class="keyword">null</span>)</span><br><span class="line">                    s = <span class="keyword">new</span> QNode(e, isData);</span><br><span class="line">                <span class="comment">//将s添加到队列中，如果失败那么重试</span></span><br><span class="line">                <span class="keyword">if</span> (!t.casNext(<span class="keyword">null</span>, s))        <span class="comment">// failed to link in</span></span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">				<span class="comment">//更新尾节点，即使失败，其他节点也会进行这步操作</span></span><br><span class="line">                advanceTail(t, s);              <span class="comment">// swing tail and wait</span></span><br><span class="line">                <span class="comment">//等待匹配</span></span><br><span class="line">                Object x = awaitFulfill(s, e, timed, nanos);</span><br><span class="line">                <span class="comment">//匹配完成，如果x == s说明，被取消了</span></span><br><span class="line">                <span class="keyword">if</span> (x == s) &#123;                   <span class="comment">// wait was cancelled</span></span><br><span class="line">                    clean(t, s);</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                &#125;</span><br><span class="line">				<span class="comment">//如果节点还未从队列中移除</span></span><br><span class="line">                <span class="keyword">if</span> (!s.isOffList()) &#123;           <span class="comment">// not already unlinked</span></span><br><span class="line">                    <span class="comment">//尝试将s置为头从队列中移除</span></span><br><span class="line">                    advanceHead(t, s);          <span class="comment">// unlink if head</span></span><br><span class="line">                    <span class="comment">//x!=null说明当前是插入操作</span></span><br><span class="line">                    <span class="keyword">if</span> (x != <span class="keyword">null</span>)              <span class="comment">// and forget fields</span></span><br><span class="line">                        <span class="comment">//说明节点被移除</span></span><br><span class="line">                        s.item = s;</span><br><span class="line">                    s.waiter = <span class="keyword">null</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//如果是插入操作，那么返回插入的元素，移除操作，返回匹配的元素</span></span><br><span class="line">                <span class="keyword">return</span> (x != <span class="keyword">null</span>) ? (E)x : e;</span><br><span class="line"></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;                            <span class="comment">// complementary-mode</span></span><br><span class="line">                <span class="comment">//如果队列存在元素并且与当前模式不同，那么就直接去队列中匹配</span></span><br><span class="line">                QNode m = h.next;               <span class="comment">// node to fulfill</span></span><br><span class="line">                <span class="comment">//只要存在其中的一种情况，就说明队列被改动过，那么重试</span></span><br><span class="line">                <span class="keyword">if</span> (t != tail || m == <span class="keyword">null</span> || h != head)</span><br><span class="line">                    <span class="keyword">continue</span>;                   <span class="comment">// inconsistent read</span></span><br><span class="line">				<span class="comment">//记录要匹配的元素</span></span><br><span class="line">                Object x = m.item;</span><br><span class="line">                <span class="comment">//如果isData == (x != null) 它们模式相同，说明已经被匹配了，重试</span></span><br><span class="line">                <span class="comment">//x == m说明被取消了，重试</span></span><br><span class="line">                <span class="comment">//将m的item设置为e表示匹配，如果失败重试</span></span><br><span class="line">                <span class="keyword">if</span> (isData == (x != <span class="keyword">null</span>) ||    <span class="comment">// m already fulfilled</span></span><br><span class="line">                    x == m ||                   <span class="comment">// m cancelled</span></span><br><span class="line">                    !m.casItem(x, e)) &#123;         <span class="comment">// lost CAS</span></span><br><span class="line">                    <span class="comment">//出队并重试</span></span><br><span class="line">                    advanceHead(h, m);          <span class="comment">// dequeue and retry</span></span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">				<span class="comment">//匹配成功</span></span><br><span class="line">                advanceHead(h, m);              <span class="comment">// successfully fulfilled</span></span><br><span class="line">                LockSupport.unpark(m.waiter);</span><br><span class="line">                <span class="keyword">return</span> (x != <span class="keyword">null</span>) ? (E)x : e;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//等待匹配跟TransferStack中一样</span></span><br><span class="line">    <span class="function">Object <span class="title">awaitFulfill</span><span class="params">(QNode s, E e, <span class="keyword">boolean</span> timed, <span class="keyword">long</span> nanos)</span> </span>&#123;</span><br><span class="line">        <span class="comment">/* Same idea as TransferStack.awaitFulfill */</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">long</span> deadline = timed ? System.nanoTime() + nanos : <span class="number">0L</span>;</span><br><span class="line">        Thread w = Thread.currentThread();</span><br><span class="line">        <span class="keyword">int</span> spins = ((head.next == s) ?</span><br><span class="line">                     (timed ? maxTimedSpins : maxUntimedSpins) : <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">if</span> (w.isInterrupted())</span><br><span class="line">                s.tryCancel(e);</span><br><span class="line">            Object x = s.item;</span><br><span class="line">            <span class="keyword">if</span> (x != e)</span><br><span class="line">                <span class="keyword">return</span> x;</span><br><span class="line">            <span class="keyword">if</span> (timed) &#123;</span><br><span class="line">                nanos = deadline - System.nanoTime();</span><br><span class="line">                <span class="keyword">if</span> (nanos &lt;= <span class="number">0L</span>) &#123;</span><br><span class="line">                    s.tryCancel(e);</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (spins &gt; <span class="number">0</span>)</span><br><span class="line">                --spins;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (s.waiter == <span class="keyword">null</span>)</span><br><span class="line">                s.waiter = w;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (!timed)</span><br><span class="line">                LockSupport.park(<span class="keyword">this</span>);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (nanos &gt; spinForTimeoutThreshold)</span><br><span class="line">                LockSupport.parkNanos(<span class="keyword">this</span>, nanos);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//节点被取消后，需要移除，pred为最开始记录尾节点，s是取消的节点</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">clean</span><span class="params">(QNode pred, QNode s)</span> </span>&#123;</span><br><span class="line">        s.waiter = <span class="keyword">null</span>; <span class="comment">// forget thread</span></span><br><span class="line">		<span class="comment">//如果已经断开，那么提前返回</span></span><br><span class="line">        <span class="keyword">while</span> (pred.next == s) &#123; <span class="comment">// Return early if already unlinked</span></span><br><span class="line">            QNode h = head;</span><br><span class="line">            QNode hn = h.next;   <span class="comment">// Absorb cancelled first node as head</span></span><br><span class="line">            <span class="comment">//从头部向后找，如果下一个节点不为null，并且取消了，那么替换头节点</span></span><br><span class="line">            <span class="comment">//直到队列没有其他节点，或者找到一个正常的节点为止</span></span><br><span class="line">            <span class="keyword">if</span> (hn != <span class="keyword">null</span> &amp;&amp; hn.isCancelled()) &#123;</span><br><span class="line">                advanceHead(h, hn);</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//记录尾节点</span></span><br><span class="line">            QNode t = tail;      <span class="comment">// Ensure consistent read for tail</span></span><br><span class="line">            <span class="comment">//如果头节点等于尾节点，那么返回</span></span><br><span class="line">            <span class="keyword">if</span> (t == h)</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            QNode tn = t.next;</span><br><span class="line">            <span class="comment">//如果t不为尾部节点，说明有新的节点进入到队列中，那么重试</span></span><br><span class="line">            <span class="keyword">if</span> (t != tail)</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            <span class="comment">//如果tn != null，说明该节点进入到队列中，但是还没有置为尾节点</span></span><br><span class="line">            <span class="comment">//也就是确保新的节点能保证置换为尾节点，虽然其他地方也会执行这部操作</span></span><br><span class="line">            <span class="keyword">if</span> (tn != <span class="keyword">null</span>) &#123;</span><br><span class="line">                advanceTail(t, tn);</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//如果s不是尾节点，那么将该节点从队列中移除</span></span><br><span class="line">            <span class="keyword">if</span> (s != t) &#123;        <span class="comment">// If not tail, try to unsplice</span></span><br><span class="line">                QNode sn = s.next;</span><br><span class="line">                <span class="keyword">if</span> (sn == s || pred.casNext(s, sn))</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//dp表示被取消但是还未从队列中移除的节点</span></span><br><span class="line">            QNode dp = cleanMe;</span><br><span class="line">            <span class="keyword">if</span> (dp != <span class="keyword">null</span>) &#123;    <span class="comment">// Try unlinking previous cancelled node</span></span><br><span class="line">                QNode d = dp.next;</span><br><span class="line">                QNode dn;</span><br><span class="line">                <span class="keyword">if</span> (d == <span class="keyword">null</span> ||               <span class="comment">// d is gone or</span></span><br><span class="line">                    d == dp ||                 <span class="comment">// d is off list or</span></span><br><span class="line">                    !d.isCancelled() ||        <span class="comment">// d not cancelled or</span></span><br><span class="line">                    (d != t &amp;&amp;                 <span class="comment">// d not tail and</span></span><br><span class="line">                     (dn = d.next) != <span class="keyword">null</span> &amp;&amp;  <span class="comment">//   has successor</span></span><br><span class="line">                     dn != d &amp;&amp;                <span class="comment">//   that is on list</span></span><br><span class="line">                     dp.casNext(d, dn)))       <span class="comment">// d unspliced</span></span><br><span class="line">                    casCleanMe(dp, <span class="keyword">null</span>);</span><br><span class="line">                <span class="keyword">if</span> (dp == pred)</span><br><span class="line">                    <span class="keyword">return</span>;      <span class="comment">// s is already saved node</span></span><br><span class="line">                <span class="comment">//移除取消的节点</span></span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (casCleanMe(<span class="keyword">null</span>, pred))</span><br><span class="line">                <span class="keyword">return</span>;          <span class="comment">// Postpone cleaning s</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> sun.misc.Unsafe UNSAFE;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> headOffset;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> tailOffset;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> cleanMeOffset;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            UNSAFE = sun.misc.Unsafe.getUnsafe();</span><br><span class="line">            Class&lt;?&gt; k = TransferQueue<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">            headOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                (k.getDeclaredField(<span class="string">"head"</span>));</span><br><span class="line">            tailOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                (k.getDeclaredField(<span class="string">"tail"</span>));</span><br><span class="line">            cleanMeOffset = UNSAFE.objectFieldOffset</span><br><span class="line">                (k.getDeclaredField(<span class="string">"cleanMe"</span>));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造方法，默认使用非公平模式</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">SynchronousQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(<span class="keyword">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//构造方法，可以通过fair指定是否位公平模式</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">SynchronousQueue</span><span class="params">(<span class="keyword">boolean</span> fair)</span> </span>&#123;</span><br><span class="line">    transferer = fair ? <span class="keyword">new</span> TransferQueue&lt;E&gt;() : <span class="keyword">new</span> TransferStack&lt;E&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生产方法"><a href="#生产方法" class="headerlink" title="生产方法"></a>生产方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//插入元素，响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(E e)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (e == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="comment">//返回null，表示被取消</span></span><br><span class="line">    <span class="keyword">if</span> (transferer.transfer(e, <span class="keyword">false</span>, <span class="number">0</span>) == <span class="keyword">null</span>) &#123;</span><br><span class="line">        Thread.interrupted();</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//插入元素，超时阻塞，响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">offer</span><span class="params">(E e, <span class="keyword">long</span> timeout, TimeUnit unit)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (e == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">if</span> (transferer.transfer(e, <span class="keyword">true</span>, unit.toNanos(timeout)) != <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (!Thread.interrupted())</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//插入元素，返回成功或者失败</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">offer</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (e == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">return</span> transferer.transfer(e, <span class="keyword">true</span>, <span class="number">0</span>) != <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="消费方法"><a href="#消费方法" class="headerlink" title="消费方法"></a>消费方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取元素，响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    E e = transferer.transfer(<span class="keyword">null</span>, <span class="keyword">false</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="comment">//如果返回为null，说明被取消</span></span><br><span class="line">    <span class="keyword">if</span> (e != <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> e;</span><br><span class="line">    Thread.interrupted();</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="comment">//获取元素，超时阻塞，响应中断</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">poll</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    E e = transferer.transfer(<span class="keyword">null</span>, <span class="keyword">true</span>, unit.toNanos(timeout));</span><br><span class="line">    <span class="keyword">if</span> (e != <span class="keyword">null</span> || !Thread.interrupted())</span><br><span class="line">        <span class="keyword">return</span> e;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取元素，如果被取消返回null</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">poll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> transferer.transfer(<span class="keyword">null</span>, <span class="keyword">true</span>, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取元素，由于SynchronousQueue中不存储元素，因此永远返回null</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">peek</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//将队列的元素放入指定集合中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">drainTo</span><span class="params">(Collection&lt;? <span class="keyword">super</span> E&gt; c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="keyword">this</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">int</span> n = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (E e; (e = poll()) != <span class="keyword">null</span>;) &#123;</span><br><span class="line">        c.add(e);</span><br><span class="line">        ++n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//将指定个数的队列元素放入指定集合中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">drainTo</span><span class="params">(Collection&lt;? <span class="keyword">super</span> E&gt; c, <span class="keyword">int</span> maxElements)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="keyword">this</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">int</span> n = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (E e; n &lt; maxElements &amp;&amp; (e = poll()) != <span class="keyword">null</span>;) &#123;</span><br><span class="line">        c.add(e);</span><br><span class="line">        ++n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+            <ul class="post-copyright">
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/03/18/SynchronousQueue/">【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)</a></li>
+                <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/03/18/SynchronousQueue/">https://yingu.site/2020/03/18/SynchronousQueue/</a></li>
+                <li><strong>发布时间：</strong>2020-03-18</li>
+                <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+                </li>
+            </ul>
+        
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/java/" rel="tag">java</a>, <a class="has-link-grey -link" href="/tags/%E6%BA%90%E7%A0%81/" rel="tag">源码</a>, <a class="has-link-grey -link" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" rel="tag">阻塞队列</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/zfb.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/wx.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/03/19/ThreadPoolExecutor-1/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">【线程池】-- ThreadPoolExecutor源码解析(上)(jdk1.8)</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/03/16/DelayQueue/">
+                <span class="level-item">【阻塞队列】-- DelayQueue源码解析(jdk1.8)</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">评论</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: '4e02017ba5f2640526d2',
+        clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
+        id: '868899f059381942c3abab15d2eb9748',
+        repo: 'gitalk-commnet',
+        owner: '330129161',
+        admin: ["330129161"],
+        createIssueManually: false,
+        distractionFreeMode: false
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/avatar.png" alt="yingu">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        yingu
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        stop
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>hang zhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <a href="/archives">
+                        <p class="title has-text-weight-normal">
+                            29
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <a href="/categories">
+                        <p class="title has-text-weight-normal">
+                            13
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <a href="/tags">
+                        <p class="title has-text-weight-normal">
+                            18
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://gitee.com/zero123123" target="_blank" rel="noopener">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/330129161">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="码云" href="https://gitee.com/zero123123">
+                
+                <i class="fab fa-git"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+
+    <div class="card widget" id="toc">
+        <div class="card-content">
+            <div class="menu">
+                <h3 class="menu-label">
+                    目录
+                </h3>
+                <ul class="menu-list"><li>
+        <a class="is-flex" href="#概述">
+        <span class="has-mr-6">1</span>
+        <span>概述</span>
+        </a></li><li>
+        <a class="is-flex" href="#结构">
+        <span class="has-mr-6">2</span>
+        <span>结构</span>
+        </a></li><li>
+        <a class="is-flex" href="#属性">
+        <span class="has-mr-6">3</span>
+        <span>属性</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#TransferStack类">
+        <span class="has-mr-6">3.1</span>
+        <span>TransferStack类</span>
+        </a></li><li>
+        <a class="is-flex" href="#TransferQueue类">
+        <span class="has-mr-6">3.2</span>
+        <span>TransferQueue类</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#方法">
+        <span class="has-mr-6">4</span>
+        <span>方法</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#构造方法">
+        <span class="has-mr-6">4.1</span>
+        <span>构造方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#生产方法">
+        <span class="has-mr-6">4.2</span>
+        <span>生产方法</span>
+        </a></li><li>
+        <a class="is-flex" href="#消费方法">
+        <span class="has-mr-6">4.3</span>
+        <span>消费方法</span>
+        </a></li></ul></li></ul>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/jvm/">
+            <span class="level-start">
+                <span class="level-item">jvm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
+            <span class="level-start">
+                <span class="level-item">内存</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/">
+            <span class="level-start">
+                <span class="level-item">工具</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
+            <span class="level-start">
+                <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/redis/">
+            <span class="level-start">
+                <span class="level-item">redis</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E6%9E%B6%E6%9E%84/">
+            <span class="level-start">
+                <span class="level-item">架构</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
+            <span class="level-start">
+                <span class="level-item">源码</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">22</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/spring/">
+            <span class="level-start">
+                <span class="level-item">spring</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+            <span class="level-start">
+                <span class="level-item">线程池</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.67px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/DDD-learn/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg" alt="DDD学习">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:44:54.000Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/DDD-learn/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DDD学习</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%9E%B6%E6%9E%84/">架构</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:31:14.986Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/RedisSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/03/DockerTools/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="Windows下使用Docker启动常用工具">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time></div>
+                    <a href="/2020/05/03/DockerTools/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Windows下使用Docker启动常用工具</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
+                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2021/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2021</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">十二月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">六月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/DDD/">
+                        <span class="tag">DDD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/class/">
+                        <span class="tag">class</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/docker/">
+                        <span class="tag">docker</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/juc/">
+                        <span class="tag">juc</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/jvm/">
+                        <span class="tag">jvm</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/loc/">
+                        <span class="tag">loc</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/redis/">
+                        <span class="tag">redis</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/spring/">
+                        <span class="tag">spring</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
+                        <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9E%B6%E6%9E%84/">
+                        <span class="tag">架构</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
+                        <span class="tag">源码</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+                        <span class="tag">线程池</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%94%81/">
+                        <span class="tag">锁</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">7</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <br>
+                    <img src="/images/logo.png" alt="【阻塞队列】-- SynchronousQueue源码解析(jdk1.8)" height="20">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2021 yingu&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <span id="busuanzi_value_site_pv">0</span>次访问
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'https://yingu.site',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

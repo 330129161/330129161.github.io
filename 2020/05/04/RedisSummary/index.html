@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>redis总结 - yingu的博客</title>
+
+
+    <meta name="description" content="结构String常用命令: set,get,decr,incr,mget 等。 特点：redis种最常用的一种数据结构 应用场景： 通过String的bitmap可以实现：布隆过滤器、AO权限、用户签到、活跃用户、用户在线状态。 通过自增、自减实现计数器、分布式锁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis总结">
+<meta property="og:url" content="https://yingu.site/2020/05/04/RedisSummary/index.html">
+<meta property="og:site_name" content="yingu的博客">
+<meta property="og:description" content="结构String常用命令: set,get,decr,incr,mget 等。 特点：redis种最常用的一种数据结构 应用场景： 通过String的bitmap可以实现：布隆过滤器、AO权限、用户签到、活跃用户、用户在线状态。 通过自增、自减实现计数器、分布式锁">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg">
+<meta property="article:published_time" content="2020-05-04T05:15:42.000Z">
+<meta property="article:modified_time" content="2021-07-18T12:31:14.988Z">
+<meta property="article:author" content="yingu">
+<meta property="article:tag" content="工具">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/cs.ico">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="alternate" href="/atom.xml" title="yingu的博客" type="application/atom+xml">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="redis总结" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">主页</a>
+                
+                <a class="navbar-item"
+                href="/archives">文章</a>
+                
+                <a class="navbar-item"
+                href="/categories">分类</a>
+                
+                <a class="navbar-item"
+                href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    1 小时 读完 (大约 6838 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                redis总结
+            
+        </h1>
+        <div class="content">
+            <h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><h3 id="String"><a href="#String" class="headerlink" title="String"></a>String</h3><p>常用命令: <code>set,get,decr,incr,mget</code> 等。</p>
+<p>特点：redis种最常用的一种数据结构</p>
+<p>应用场景： 通过String的bitmap可以实现：布隆过滤器、AO权限、用户签到、活跃用户、用户在线状态。</p>
+<p>通过自增、自减实现计数器、分布式锁</p>
+<a id="more"></a>
+
+<h3 id="Hash"><a href="#Hash" class="headerlink" title="Hash"></a>Hash</h3><p>常用命令：<code>hget,hset,hgetall</code>等</p>
+<p>特点：存放的是结构化的对象，可以对对象中属性单独修改</p>
+<p>应用场景：比较适合存储一些详情信息、例如购物车、对象</p>
+<h3 id="List"><a href="#List" class="headerlink" title="List"></a>List</h3><p>常用命令：<code>lpush,rpush,lpop,rpop,lrange</code>等</p>
+<p>特点：链表，按照插入顺序排序</p>
+<p>应用场景：消息队列、最新列表、排行榜(定时计算)、利用lrange命令做分页</p>
+<h3 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h3><p>常用命令： <code>sadd,spop,smembers,sunion</code> 等</p>
+<p>特点：不可重复、无序</p>
+<p>应用场景：通过交集实现共同好友功能、通过差集实现推荐好友功能、去重</p>
+<h3 id="zset-sorted-set"><a href="#zset-sorted-set" class="headerlink" title="zset(sorted set)"></a>zset(sorted set)</h3><p>特点：可以通过权重参数score来对set中的元素进行排序</p>
+<p>应用场景：排行榜(实时计算)、评论+动态分页</p>
+<h2 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h2><h3 id="定时删除"><a href="#定时删除" class="headerlink" title="定时删除"></a>定时删除</h3><p>通过定时器监听所有key的过期，可以立即清除过期的key但是比较占用CPU资源，如果有大量的key需要清除，那么可能会影响数据的读写效率</p>
+<h3 id="惰性删除"><a href="#惰性删除" class="headerlink" title="惰性删除"></a>惰性删除</h3><p>当访问指定key时，才会检测key是否需要清除，如果大量过期的key没有被访问到，那么会占用大量内存</p>
+<h3 id="定期过期"><a href="#定期过期" class="headerlink" title="定期过期"></a>定期过期</h3><p>每隔一定的时间，执行一次删除过期key操作。该策略是前两者的一个折中方案。通过调整定时扫描的时间间隔和每次扫描的限定耗时，可以在不同情况下使得CPU和内存资源达到最优的平衡效果。(expires字典会保存所有设置了过期时间的key的过期时间数据，其中，key是指向键空间中的某个键的指针，value是该键的毫秒精度的UNIX时间戳表示的过期时间。键空间是指该Redis集群中保存的所有键。)</p>
+<p><strong>redis默认使用定期删除+惰性删除策略</strong>：redis默认每100ms随机对redis中key进行检查，如果key过期那么删除，未删除的key在下一次使用时，会通过惰性删除策略检查并删除。如果用户一直不访问未被删除的key，那么最后过期的key会越来越多，那么此时就该采用<strong>内存淘汰策略</strong>了。</p>
+<h2 id="内存淘汰策略"><a href="#内存淘汰策略" class="headerlink" title="内存淘汰策略"></a>内存淘汰策略</h2><h3 id="noeviction"><a href="#noeviction" class="headerlink" title="noeviction"></a>noeviction</h3><p>当内存不足以容纳新写入数据时，新写入操作会报错。</p>
+<h3 id="allkeys-lru"><a href="#allkeys-lru" class="headerlink" title="allkeys-lru"></a>allkeys-lru</h3><p>当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。</p>
+<h3 id="allkeys-random"><a href="#allkeys-random" class="headerlink" title="allkeys-random"></a>allkeys-random</h3><p>当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。</p>
+<h3 id="volatile-lru"><a href="#volatile-lru" class="headerlink" title="volatile-lru"></a>volatile-lru</h3><p>当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。</p>
+<h3 id="volatile-random"><a href="#volatile-random" class="headerlink" title="volatile-random"></a>volatile-random</h3><p>当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。</p>
+<h3 id="volatile-ttl"><a href="#volatile-ttl" class="headerlink" title="volatile-ttl"></a>volatile-ttl</h3><p>当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。</p>
+<p>​        <code>redis</code>默认提供以上六种策略，用户可以通过<code>redis.conf</code>中的<code>maxmemory-policy</code>来配置，例如：<code>maxmemory-policy allkeys-lru</code>。如果没有设置 <code>expire</code> 的<code>key</code>, 那么 <code>volatile-lru</code>, <code>volatile-random</code> 和 <code>volatile-ttl</code> 策略的行为和 <code>noeviction</code>基本上一致。</p>
+<h2 id="缓存穿透、缓存击穿、缓存雪崩"><a href="#缓存穿透、缓存击穿、缓存雪崩" class="headerlink" title="缓存穿透、缓存击穿、缓存雪崩"></a>缓存穿透、缓存击穿、缓存雪崩</h2><h3 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h3><p>特点：去请求缓存中不存在的数据，导致所有的请求都打到数据库，从而造成数据库连接异常。</p>
+<p>解决方案：</p>
+<ol>
+<li>布隆过滤器：内部维护数据库中所有数据的key，通过判断请求key是否有效，来决定是否需要去数据库中查询。</li>
+<li>异步更新：无论key是否存在都返回，随后另开一个线程异步去数据库中查询。</li>
+</ol>
+<h3 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h3><p>特点：缓存穿透的一种情况，当前一条数据失效。(单个key请求量较大)</p>
+<p>解决方案：如果当前数据不是热点数据且访问量小那么不需要解决，如果为热点数据或访问量大，那么可以通过分布式锁来解决。</p>
+<h3 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h3><p>特点：缓存同一时间大面积的失效，这个时候又来了一波请求，结果请求都打到数据库上，从而导致数据库连接异常。</p>
+<p>解决方案：给缓存的失效时间，加上一个随机值，避免集体失效。</p>
+<h2 id="持久化"><a href="#持久化" class="headerlink" title="持久化"></a>持久化</h2><h3 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h3><p>RDB持久化是指在指定的时间间隔内将内存中的数据集快照写入磁盘，实际操作过程是fork一个子进程，先将数据集写入临时文件，写入成功后，再替换之前的文件，用二进制压缩存储。<strong>redis默认开启</strong>。</p>
+<p>优点：恢复速度快、使用单独的子线程进行持久化，主进程不会进行任何IO操作</p>
+<p>缺点：持久化之间发生故障后丢失的数据较多</p>
+<p>参数配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#dbfilename：持久化数据存储在本地的文件</span><br><span class="line">dbfilename dump.rdb</span><br><span class="line">#dir：持久化数据存储在本地的路径，如</span><br><span class="line">dir .&#x2F;</span><br><span class="line">##snapshot触发的时机，save     </span><br><span class="line">#在900秒(15分钟)之后，如果至少有1个key发生变化，则dump内存快照。</span><br><span class="line">save 900 1   </span><br><span class="line"> #在300秒(5分钟)之后，如果至少有10个key发生变化，则dump内存快照。</span><br><span class="line">save 300 10</span><br><span class="line">#在60秒(1分钟)之后，如果至少有10000个key发生变化，则dump内存快照。</span><br><span class="line">save 60 10000</span><br><span class="line">##当snapshot时出现错误无法继续时，是否阻塞客户端&quot;变更操作&quot;，&quot;错误&quot;可能因为磁盘已满&#x2F;磁盘故障&#x2F;OS级别异常等  </span><br><span class="line">stop-writes-on-bgsave-error yes  </span><br><span class="line">##是否启用rdb文件压缩，默认为&quot;yes&quot;，压缩往往意味着&quot;额外的cpu消耗&quot;，同时也意味这较小的文件尺寸以及较短的网络传输时间  </span><br><span class="line">rdbcompression yes</span><br></pre></td></tr></table></figure>
+
+<h3 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h3><p>AOF持久化以日志的形式记录服务器所处理的每一个写、删除操作，查询操作不会记录，以文本的方式记录，可以打开文件看到详细的操作记录。</p>
+<p>优点：持久化之间发生故障后丢失数据少</p>
+<p>缺点：恢复速度较慢</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">##此选项为aof功能的开关，默认为&quot;no&quot;，可以通过&quot;yes&quot;来开启aof功能  </span><br><span class="line">##只有在&quot;yes&quot;下，aof重写&#x2F;文件同步等特性才会生效  </span><br><span class="line">appendonly yes  </span><br><span class="line"> </span><br><span class="line">##指定aof文件名称  </span><br><span class="line">appendfilename appendonly.aof  </span><br><span class="line"> </span><br><span class="line">##指定aof操作中文件同步策略，有三个合法值：always everysec no,默认为everysec  </span><br><span class="line">appendfsync everysec  </span><br><span class="line">##在aof-rewrite期间，appendfsync是否暂缓文件同步，&quot;no&quot;表示&quot;不暂缓&quot;，&quot;yes&quot;表示&quot;暂缓&quot;，默认为&quot;no&quot;  </span><br><span class="line">no-appendfsync-on-rewrite no  </span><br><span class="line"> </span><br><span class="line">##aof文件rewrite触发的最小文件尺寸(mb,gb),只有大于此aof文件大于此尺寸是才会触发rewrite，默认&quot;64mb&quot;，建议&quot;512mb&quot;  </span><br><span class="line">auto-aof-rewrite-min-size 64mb  </span><br><span class="line"> </span><br><span class="line">##相对于&quot;上一次&quot;rewrite，本次rewrite触发时aof文件应该增长的百分比。  </span><br><span class="line">##每一次rewrite之后，redis都会记录下此时&quot;新aof&quot;文件的大小(例如A)，那么当aof文件增长到A*(1 + p)之后  </span><br><span class="line">##触发下一次rewrite，每一次aof记录的添加，都会检测当前aof文件的尺寸。  </span><br><span class="line">auto-aof-rewrite-percentage 100  </span><br><span class="line"></span><br><span class="line">AOF 是文件操作，对于变更操作比较密集的 server，那么必将造成磁盘 IO 的负荷加重；此外 linux 对文件操作采取了“延迟写入”手段，即并非每次 write 操作都会触发实际磁盘操作，而是进入了 buffer 中，当 buffer 数据达到阀值时触发实际写入(也有其他时机)，这是 linux 对文件系统的优化，但是这却有可能带来隐患，如果 buffer 没有刷新到磁盘，此时物理机器失效(比如断电)，那么有可能导致最后一条或者多条 aof 记录的丢失。通过上述配置文件，可以得知 redis 提供了 3 中 aof 记录同步选项：</span><br><span class="line">always：每一条 aof 记录都立即同步到文件，这是最安全的方式，也以为更多的磁盘操作和阻塞延迟，是 IO 开支较大。</span><br><span class="line">everysec：每秒同步一次，性能和安全都比较中庸的方式，也是 redis 推荐的方式。如果遇到物理服务器故障，有可能导致最近一秒内 aof 记录丢失(可能为部分丢失)。</span><br><span class="line">no：redis 并不直接调用文件同步，而是交给操作系统来处理，操作系统可以根据 buffer 填充情况 &#x2F; 通道空闲时间等择机触发同步；这是一种普通的文件操作方式。性能较好，在物理服务器故障时，数据丢失量会因 OS 配置有关。</span><br></pre></td></tr></table></figure>
+
+<h3 id="混合持久化"><a href="#混合持久化" class="headerlink" title="混合持久化"></a>混合持久化</h3><p>Redis 4.0 开始支持 rdb 和 aof 的混合持久化(默认关闭)。如果把混合持久化打开，<code>aof rewrite</code> 的时候就直接把 rdb 的内容写到 aof 文件开头。也就是说日志只用来做增量恢复， 而快照用来使用恢复。打开混合持久化的配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">appendonly yes</span><br><span class="line">aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure>
+
+<h2 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h2><h3 id="主从复制-Replication"><a href="#主从复制-Replication" class="headerlink" title="主从复制(Replication)"></a>主从复制(Replication)</h3><p>当你的业务需要对redis进行大量读请求，而你的redis服务器性能又不够时，就可以通过主从复制的方式对redis进行一个集群配置。</p>
+<p>特点：</p>
+<ol>
+<li>读写分离：master提供读写服务，slave(可以为多个)提供读服务</li>
+<li>master挂了后，无法自动重新选举master,那么此时无法提供写服务</li>
+</ol>
+<p>Redis的主从复制可以根据是否全量分为全量同步和增量同步。</p>
+<p>主从复制的过程：</p>
+<p>​        <code>redis</code>的主从复制策略是通过其持久化的RDB文件来实现的，当配置好<code>Slave</code>后，<code>Slave</code>与<code>Master</code>建立连接，然后发送sync命令。无论是第一次连接还是重新连接，<code>Master</code>都会启动一个后台进 程，将数据库RDB快照保存到文件中，同时<code>Master</code>主进程会开始收集新的写命令并缓存。后台进程完成写文件后，<code>Master</code>就发送文件给  <code>Slave</code>，<code>Slave</code>将文件保存到硬盘上，再加载到内存中，接着<code>Master</code>就会把缓存的命令转发给<code>Slave</code>，后续<code>Master</code>将收到的写命令发送给 <code>Slave</code>。如果<code>Master</code>同时收到多个<code>Slave</code>发来的同步连接命令，<code>Master</code>只会启动一个进程来写数据库镜像，然后发送给所有的<code>Slave</code>。</p>
+<p><code>redis.conf</code>参数配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Master节点中配置读写分离 slave-read-only yes</span><br><span class="line">Slave节点中配置 slaveof master_ip master_port 6379 #指定master的ip和端口</span><br></pre></td></tr></table></figure>
+
+<h3 id="哨兵模式-Sentinel"><a href="#哨兵模式-Sentinel" class="headerlink" title="哨兵模式(Sentinel)"></a>哨兵模式(Sentinel)</h3><p> Redis从2.8开始正式提供了<code>Redis Sentinel</code> 架构，<code>Sentinel</code>用于监控redis集群中<code>Master</code>主服务器工作的状态，当前<code>Master</code>发生故障后，可以实现Master和Slave服务器的切换。</p>
+<p>工作方式：</p>
+<ol>
+<li>每个<code>Sentinel</code>以每秒钟一次的频率向它所知的<code>Master</code>，<code>Slave</code>以及其他 <code>Sentinel</code> 实例发送一个PING命令。</li>
+<li>如果一个实例（instance）距离最后一次有效回复PING命令的时间超过 <code>own-after-milliseconds</code> 选项所指定的值，则这个实例会被<code>Sentinel</code>标记为主观下线。 </li>
+<li>如果一个<code>Master</code>被标记为主观下线，则正在监视这个<code>Master</code>的所有 <code>Sentinel</code> 要以每秒一次的频率确认<code>Master</code>的确进入了主观下线状态。 </li>
+<li>当有足够数量的<code>Sentinel</code>（大于等于配置文件指定的值）在指定的时间范围内确认<code>Master</code>的确进入了主观下线状态，则<code>Master</code>会被标记为客观下线。</li>
+<li>在一般情况下，每个<code>Sentinel</code> 会以每10秒一次的频率向它已知的所有Master，<code>Slave</code>发送 INFO 命令。</li>
+<li>当Master被Sentinel标记为客观下线时，<code>Sentinel</code> 向下线的 <code>Master</code> 的所有<code>Slave</code>发送 INFO命令的频率会从10秒一次改为每秒一次。 </li>
+<li>若没有足够数量的<code>Sentinel</code>同意<code>Master</code>已经下线，Master的客观下线状态就会被移除。 若 <code>Master</code>重新向<code>Sentinel</code> 的PING命令返回有效回复，Master的主观下线状态就会被移除。</li>
+</ol>
+<p>哨兵的主要功能</p>
+<ul>
+<li><p>集群监控：负责监控 Redis master 和 slave 进程是否正常工作。</p>
+</li>
+<li><p>消息通知：如果某个 <strong>Redis</strong> 实例有故障，那么哨兵负责发送消息作为报警通知给管理员。</p>
+</li>
+<li><p>故障转移：如果 master node 挂掉了，会自动转移到 slave node 上。</p>
+</li>
+<li><p>配置中心：如果故障转移发生了，通知 client 客户端新的 master 地址。</p>
+</li>
+</ul>
+<p><code>sentinel.conf</code> 参数配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line"># Example sentinel.conf</span><br><span class="line"></span><br><span class="line"># *** IMPORTANT ***</span><br><span class="line"># 绑定IP地址</span><br><span class="line"># bind 127.0.0.1 192.168.1.1</span><br><span class="line"># 保护模式（是否禁止外部链接，除绑定的ip地址外）</span><br><span class="line"># protected-mode no</span><br><span class="line"></span><br><span class="line"># port &lt;sentinel-port&gt;</span><br><span class="line"># 此Sentinel实例运行的端口</span><br><span class="line">port 26379</span><br><span class="line"></span><br><span class="line"># 默认情况下，Redis Sentinel不作为守护程序运行。 如果需要，可以设置为 yes。</span><br><span class="line">daemonize no</span><br><span class="line"></span><br><span class="line"># 启用守护进程运行后，Redis将在&#x2F;var&#x2F;run&#x2F;redis-sentinel.pid中写入一个pid文件</span><br><span class="line">pidfile &#x2F;var&#x2F;run&#x2F;redis-sentinel.pid</span><br><span class="line"></span><br><span class="line"># 指定日志文件名。 如果值为空，将强制Sentinel日志标准输出。守护进程下，如果使用标准输出进行日志记录，则日志将发送到&#x2F;dev&#x2F;null</span><br><span class="line">logfile &quot;&quot;</span><br><span class="line"></span><br><span class="line"># sentinel announce-ip &lt;ip&gt;</span><br><span class="line"># sentinel announce-port &lt;port&gt;</span><br><span class="line">#</span><br><span class="line"># 上述两个配置指令在环境中非常有用，因为NAT可以通过非本地地址从外部访问Sentinel。</span><br><span class="line">#</span><br><span class="line"># 当提供announce-ip时，Sentinel将在通信中声明指定的IP地址，而不是像通常那样自动检测本地地址。</span><br><span class="line">#</span><br><span class="line"># 类似地，当提供announce-port 有效且非零时，Sentinel将宣布指定的TCP端口。</span><br><span class="line">#</span><br><span class="line"># 这两个选项不需要一起使用，如果只提供announce-ip，Sentinel将宣告指定的IP和“port”选项指定的服务器端口。</span><br><span class="line"># 如果仅提供announce-port，Sentinel将通告自动检测到的本地IP和指定端口。</span><br><span class="line">#</span><br><span class="line"># Example:</span><br><span class="line">#</span><br><span class="line"># sentinel announce-ip 1.2.3.4</span><br><span class="line"></span><br><span class="line"># dir &lt;working-directory&gt;</span><br><span class="line"># 每个长时间运行的进程都应该有一个明确定义的工作目录。对于Redis Sentinel来说，&#x2F;tmp就是自己的工作目录。</span><br><span class="line">dir &#x2F;tmp</span><br><span class="line"></span><br><span class="line"># sentinel monitor &lt;master-name&gt; &lt;ip&gt; &lt;redis-port&gt; &lt;quorum&gt;</span><br><span class="line">#</span><br><span class="line"># 告诉Sentinel监听指定主节点，并且只有在至少&lt;quorum&gt;哨兵达成一致的情况下才会判断它 O_DOWN 状态。</span><br><span class="line">#</span><br><span class="line">#</span><br><span class="line"># 副本是自动发现的，因此您无需指定副本。</span><br><span class="line"># Sentinel本身将重写此配置文件，使用其他配置选项添加副本。另请注意，当副本升级为主副本时，将重写配置文件。</span><br><span class="line">#</span><br><span class="line"># 注意：主节点（master）名称不能包含特殊字符或空格。</span><br><span class="line"># 有效字符可以是 A-z 0-9 和这三个字符 &quot;.-_&quot;.</span><br><span class="line">sentinel monitor mymaster 127.0.0.1 6379 2</span><br><span class="line"></span><br><span class="line"># 如果redis配置了密码，那这里必须配置认证，否则不能自动切换</span><br><span class="line"># Example:</span><br><span class="line">#</span><br><span class="line"># sentinel auth-pass mymaster MySUPER--secret-0123passw0rd</span><br><span class="line"></span><br><span class="line"># sentinel down-after-milliseconds &lt;master-name&gt; &lt;milliseconds&gt;</span><br><span class="line">#</span><br><span class="line"># 主节点或副本在指定时间内没有回复PING，便认为该节点为主观下线 S_DOWN 状态。</span><br><span class="line">#</span><br><span class="line"># 默认是30秒</span><br><span class="line">sentinel down-after-milliseconds mymaster 30000</span><br><span class="line"></span><br><span class="line"># sentinel parallel-syncs &lt;master-name&gt; &lt;numreplicas&gt;</span><br><span class="line">#</span><br><span class="line"># 在故障转移期间，多少个副本节点进行数据同步</span><br><span class="line">sentinel parallel-syncs mymaster 1</span><br><span class="line"></span><br><span class="line"># sentinel failover-timeout &lt;master-name&gt; &lt;milliseconds&gt;</span><br><span class="line">#</span><br><span class="line"># 指定故障转移超时（以毫秒为单位）。 它以多种方式使用：</span><br><span class="line">#</span><br><span class="line"># - 在先前的故障转移之后重新启动故障转移所需的时间已由给定的Sentinel针对同一主服务器尝试，是故障转移超时的两倍。</span><br><span class="line">#</span><br><span class="line"># - 当一个slave从一个错误的master那里同步数据开始计算时间。直到slave被纠正为向正确的master那里同步数据时。</span><br><span class="line">#</span><br><span class="line"># - 取消已在进行但未生成任何配置更改的故障转移所需的时间</span><br><span class="line">#</span><br><span class="line"># - 当进行failover时，配置所有slaves指向新的master所需的最大时间。</span><br><span class="line">#   即使过了这个超时，slaves依然会被正确配置为指向master。</span><br><span class="line">#</span><br><span class="line"># 默认3分钟</span><br><span class="line">sentinel failover-timeout mymaster 180000</span><br><span class="line"></span><br><span class="line"># 脚本执行</span><br><span class="line">#</span><br><span class="line"># sentinel notification-script和sentinel reconfig-script用于配置调用的脚本，以通知系统管理员或在故障转移后重新配置客户端。</span><br><span class="line"># 脚本使用以下规则执行以进行错误处理：</span><br><span class="line">#</span><br><span class="line"># 如果脚本以“1”退出，则稍后重试执行（最多重试次数为当前设置的10次）。</span><br><span class="line">#</span><br><span class="line"># 如果脚本以“2”（或更高的值）退出，则不会重试执行。</span><br><span class="line">#</span><br><span class="line"># 如果脚本因为收到信号而终止，则行为与退出代码1相同。</span><br><span class="line">#</span><br><span class="line"># 脚本的最长运行时间为60秒。 达到此限制后，脚本将以SIGKILL终止，并重试执行。</span><br><span class="line"></span><br><span class="line"># 通知脚本</span><br><span class="line">#</span><br><span class="line"># sentinel notification-script &lt;master-name&gt; &lt;script-path&gt;</span><br><span class="line">#</span><br><span class="line"># 为警告级别生成的任何Sentinel事件调用指定的通知脚本（例如-sdown，-odown等）。</span><br><span class="line"># 此脚本应通过电子邮件，SMS或任何其他消息传递系统通知系统管理员 监控的Redis系统出了问题。</span><br><span class="line">#</span><br><span class="line"># 使用两个参数调用脚本：第一个是事件类型，第二个是事件描述。</span><br><span class="line">#</span><br><span class="line"># 该脚本必须存在且可执行，以便在提供此选项时启动sentinel。</span><br><span class="line">#</span><br><span class="line"># 举例:</span><br><span class="line">#</span><br><span class="line"># sentinel notification-script mymaster &#x2F;var&#x2F;redis&#x2F;notify.sh</span><br><span class="line"></span><br><span class="line"># 客户重新配置脚本</span><br><span class="line">#</span><br><span class="line"># sentinel client-reconfig-script &lt;master-name&gt; &lt;script-path&gt;</span><br><span class="line">#</span><br><span class="line"># 当主服务器因故障转移而变更时，可以调用脚本执行特定于应用程序的任务，以通知客户端，配置已更改且主服务器地址已经变更。</span><br><span class="line">#</span><br><span class="line"># 以下参数将传递给脚本：</span><br><span class="line">#</span><br><span class="line"># &lt;master-name&gt; &lt;role&gt; &lt;state&gt; &lt;from-ip&gt; &lt;from-port&gt; &lt;to-ip&gt; &lt;to-port&gt;</span><br><span class="line">#</span><br><span class="line"># &lt;state&gt; 目前始终是故障转移 &quot;failover&quot;</span><br><span class="line"># &lt;role&gt; 是 &quot;leader&quot; 或 &quot;observer&quot;</span><br><span class="line">#</span><br><span class="line"># 参数 from-ip, from-port, to-ip, to-port 用于传递主服务器的旧地址和所选副本的新地址。</span><br><span class="line">#</span><br><span class="line"># 举例:</span><br><span class="line">#</span><br><span class="line"># sentinel client-reconfig-script mymaster &#x2F;var&#x2F;redis&#x2F;reconfig.sh</span><br><span class="line"></span><br><span class="line"># 安全</span><br><span class="line"># 避免脚本重置，默认值yes</span><br><span class="line"># 默认情况下，SENTINEL SET将无法在运行时更改notification-script和client-reconfig-script。</span><br><span class="line"># 这避免了一个简单的安全问题，客户端可以将脚本设置为任何内容并触发故障转移以便执行程序。</span><br><span class="line">sentinel deny-scripts-reconfig yes</span><br><span class="line"></span><br><span class="line"># REDIS命令重命名</span><br><span class="line">#</span><br><span class="line">#</span><br><span class="line"># 在这种情况下，可以告诉Sentinel使用不同的命令名称而不是正常的命令名称。</span><br><span class="line"># 例如，如果主“mymaster”和相关副本的“CONFIG”全部重命名为“GUESSME”，我可以使用：</span><br><span class="line">#</span><br><span class="line"># SENTINEL rename-command mymaster CONFIG GUESSME</span><br><span class="line">#</span><br><span class="line"># 设置此类配置后，每次Sentinel使用CONFIG时，它将使用GUESSME。 请注意，实际上不需要尊重命令案例，因此在上面的示例中写“config guessme”是相同的。</span><br><span class="line">#</span><br><span class="line"># SENTINEL SET也可用于在运行时执行此配置。</span><br><span class="line">#</span><br><span class="line"># 为了将命令设置回其原始名称（撤消重命名），可以将命令重命名为它自身：</span><br><span class="line">#</span><br><span class="line"># SENTINEL rename-command mymaster CONFIG CONFIG</span><br></pre></td></tr></table></figure>
+
+<h3 id="Redis-Sharding-客户端分片"><a href="#Redis-Sharding-客户端分片" class="headerlink" title="Redis Sharding(客户端分片)"></a>Redis Sharding(客户端分片)</h3><p>redis 3.0以下使用<strong>客户端sharding</strong>分片技术，它是一主多备的实现方式。采用一致性Hash算法来实现数据的分片。通过将数据分散到多个Redis实例中，进而减轻单台redis实例的压力。</p>
+<p>优点：服务端独立，降低了服务器集群的复杂性、减轻单台redis实例的压力、横向扩展可存储更多数据</p>
+<p>缺点：需要实时获取集群节点的联系信息，动态添加节点需要客户端支持动态sharding，并且需要重启服务器</p>
+<h3 id="Redis-Cluster-服务端分片"><a href="#Redis-Cluster-服务端分片" class="headerlink" title="Redis-Cluster(服务端分片)"></a>Redis-Cluster(服务端分片)</h3><p>redis 3.0推出的Redis-Cluster是基于Redis Sharding的一种集群方式。一个Redis Cluster由多个Redis节点组成。不同的节点组服务的数据无交集，每个节点对应数据sharding的一个分片。节点组内部分为主备2类，对应前面叙述的master和slave。两者数据准实时一致，通过异步化的主备复制机制保证。一个节点组有且仅有一个master，同时有0到多个slave。只有master对外提供写服务，读服务可由master/slave提供。</p>
+<p>原理：redis cluster 默认分配了 16384(2^14) 个slot，当我们set一个key  时，会用CRC16算法来取模得到所属的slot，然后将这个key 分到哈希槽区间的节点上，具体算法就是：CRC16(key) %  16384。必须要3个以上的主节点，否则在创建集群时会失败。</p>
+<ul>
+<li>为什么RedisCluster有16384个槽？CRC16算法产生的hash值有16bit，该算法可以产生2^16-=65536个值。换句话说，值是分布在0~65535之间。那作者在做mod运算的时候，为什么不mod65536，而选择mod16384？<ol>
+<li>因为节点在通讯的时候会携带消息头。如果槽位为65536，发送心跳信息的消息头达8k，发送的心跳包过于庞大。</li>
+<li>一般情况下节点不会超过1000个，因此16384个槽位足够我们使用。</li>
+<li>如果节点太少，而槽位有很多的情况下，压缩效率较低。</li>
+</ol>
+</li>
+</ul>
+<h4 id="Redis-Cluster原理"><a href="#Redis-Cluster原理" class="headerlink" title="Redis Cluster原理"></a>Redis Cluster原理</h4><ol>
+<li>node1和node2首先进行握手meet，知道彼此的存在</li>
+<li>握手成功后，两个节点会定期发送ping/pong消息，交换数据信息(消息头，消息体)</li>
+<li>消息头里面有个字段：unsigned char myslots[CLUSTER_SLOTS/8]，每一位代表一个槽，如果该位是1，代表该槽属于这个节点</li>
+<li>消息体中会携带一定数量的其他节点的信息，大约占集群节点总数量的十分之一，至少是3个节点的信息。节点数量越多，消息体内容越大。</li>
+<li>每秒都在发送ping消息。每秒随机选取5个节点，找出最久没有通信的节点发送ping消息。</li>
+<li>每100毫秒都会扫描本地节点列表，如果发现节点最近一次接受pong消息的时间大于cluster-node-timeout/2,则立即发送ping消息</li>
+</ol>
+<h2 id="一致性hash算法"><a href="#一致性hash算法" class="headerlink" title="一致性hash算法"></a>一致性hash算法</h2><p>一致性hash算法是基于hash算法实现的，<code>Redis Sharding</code>使用了此算法。</p>
+<p>原理：首先求出服务器的哈希值，并将其映射到0~2^32个槽的圆环上。不同的服务器经过hash计算后，分配到圆环上不同的槽。当用户存储数据时，也会通过计算数据键的哈希值的方式将数据映射到圆环上，接着从数据映射的位置开始顺时针查找，将数据保存到找到的第一个服务器上，如果找了一圈还没找到，那么最就会保存到第一台服务器上。</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%AE%97%E6%B3%95.png" alt=""></p>
+<p>一致性hash算法的好处很明显，当需要新增节点时只会影响顺时针的下一个节点，但是这种方式也会带来一种问题，那么就是数据倾斜，如图：</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%AE%97%E6%B3%95%E5%80%BE%E6%96%9C.png" alt=""></p>
+<p>从上面图就可以看出，当服务器分布不均时，可能会导致大量的数据存储到同一个数据库中，产生一个数据倾斜的问题，因此为了解决这种问题，一致性hash算法引入了虚拟节点机制，即对每一个服务器节点计算多个hash，将每个计算结果都放置一个此服务器节点，称为虚拟节点。实际应用中，通常将虚拟节点数设置为32甚至更大，因此即使很少的服务节点也能做到相对均匀的数据分布。</p>
+<h2 id="常见优化"><a href="#常见优化" class="headerlink" title="常见优化"></a>常见优化</h2><ol>
+<li>Master最好不要做任何持久化工作，如RDB内存快照和AOF日志文件</li>
+<li>如果数据比较重要，某个Slave开启AOF备份数据，策略设置为每秒同步一次</li>
+<li>为了主从复制的速度和连接的稳定性，Master和Slave最好在同一个局域网内</li>
+<li>尽量避免在压力很大的主库上增加从库</li>
+<li>主从复制不要用图状结构，用单向链表结构更为稳定，即：Master &lt;- Slave1 &lt;- Slave2 &lt;- Slave3…</li>
+</ol>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><ul>
+<li>为什么redis采用单线程？</li>
+</ul>
+<p>因为Redis是基于内存的操作，CPU不是Redis的瓶颈，Redis的瓶颈最有可能是机器内存的大小或者网络带宽。并且单线程更容易实现，不用考虑线程切换消耗性能的问题，也就不需要考虑线程安全问题。</p>
+<p>redis使用多路复用技术，可以处理并发的连接。非阻塞IO 内部实现采用epoll，采用了epoll+自己实现的简单的事件框架。epoll中的读、写、关闭、连接都转化成了事件，然后利用epoll的多路复用特性，绝不在io上浪费一点时间。</p>
+<ul>
+<li>Redis如何做内存优化？</li>
+</ul>
+<p>尽可能使用散列表（hashes），散列表（是说散列表里面存储的数少）使用的内存非常小，所以你应该尽可能的将你的数据模型抽象到一个散列表里面。</p>
+<p>参考资料</p>
+<p><a href="https://www.jianshu.com/p/65765dd10671">https://www.jianshu.com/p/65765dd10671</a></p>
+<p><a href="https://blog.csdn.net/u010647035/article/details/90553596">https://blog.csdn.net/u010647035/article/details/90553596</a></p>
+<p><a href="https://www.cnblogs.com/williamjie/p/9477852.html">https://www.cnblogs.com/williamjie/p/9477852.html</a></p>
+<p><a href="https://blog.csdn.net/fouy_yun/article/details/81590252">https://blog.csdn.net/fouy_yun/article/details/81590252</a></p>
+<p><a href="https://www.cnblogs.com/Eugene-Jin/p/10819601.html">https://www.cnblogs.com/Eugene-Jin/p/10819601.html</a></p>
+<p><a href="https://blog.csdn.net/qq_41453285/article/details/106383157">https://blog.csdn.net/qq_41453285/article/details/106383157</a></p>
+<p>​    </p>
+
+        </div>
+        
+            <ul class="post-copyright">
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/05/04/RedisSummary/">redis总结</a></li>
+                <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/05/04/RedisSummary/">https://yingu.site/2020/05/04/RedisSummary/</a></li>
+                <li><strong>发布时间：</strong>2020-05-04</li>
+                <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+                </li>
+            </ul>
+        
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/redis/" rel="tag">redis</a>, <a class="has-link-grey -link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/zfb.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/wx.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2021/07/18/MySqlSummary/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">MySqlSummary</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/05/03/DockerTools/">
+                <span class="level-item">Windows下使用Docker启动常用工具</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">评论</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: '4e02017ba5f2640526d2',
+        clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
+        id: 'f10a0edd9d0c2c6965abfa8ab8cc7d41',
+        repo: 'gitalk-commnet',
+        owner: '330129161',
+        admin: ["330129161"],
+        createIssueManually: false,
+        distractionFreeMode: false
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/avatar.png" alt="yingu">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        yingu
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        stop
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>hang zhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <a href="/archives">
+                        <p class="title has-text-weight-normal">
+                            29
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <a href="/categories">
+                        <p class="title has-text-weight-normal">
+                            13
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <a href="/tags">
+                        <p class="title has-text-weight-normal">
+                            18
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://gitee.com/zero123123" target="_blank" rel="noopener">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/330129161">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="码云" href="https://gitee.com/zero123123">
+                
+                <i class="fab fa-git"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+
+    <div class="card widget" id="toc">
+        <div class="card-content">
+            <div class="menu">
+                <h3 class="menu-label">
+                    目录
+                </h3>
+                <ul class="menu-list"><li>
+        <a class="is-flex" href="#结构">
+        <span class="has-mr-6">1</span>
+        <span>结构</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#String">
+        <span class="has-mr-6">1.1</span>
+        <span>String</span>
+        </a></li><li>
+        <a class="is-flex" href="#Hash">
+        <span class="has-mr-6">1.2</span>
+        <span>Hash</span>
+        </a></li><li>
+        <a class="is-flex" href="#List">
+        <span class="has-mr-6">1.3</span>
+        <span>List</span>
+        </a></li><li>
+        <a class="is-flex" href="#Set">
+        <span class="has-mr-6">1.4</span>
+        <span>Set</span>
+        </a></li><li>
+        <a class="is-flex" href="#zset-sorted-set">
+        <span class="has-mr-6">1.5</span>
+        <span>zset(sorted set)</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#过期策略">
+        <span class="has-mr-6">2</span>
+        <span>过期策略</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#定时删除">
+        <span class="has-mr-6">2.1</span>
+        <span>定时删除</span>
+        </a></li><li>
+        <a class="is-flex" href="#惰性删除">
+        <span class="has-mr-6">2.2</span>
+        <span>惰性删除</span>
+        </a></li><li>
+        <a class="is-flex" href="#定期过期">
+        <span class="has-mr-6">2.3</span>
+        <span>定期过期</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#内存淘汰策略">
+        <span class="has-mr-6">3</span>
+        <span>内存淘汰策略</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#noeviction">
+        <span class="has-mr-6">3.1</span>
+        <span>noeviction</span>
+        </a></li><li>
+        <a class="is-flex" href="#allkeys-lru">
+        <span class="has-mr-6">3.2</span>
+        <span>allkeys-lru</span>
+        </a></li><li>
+        <a class="is-flex" href="#allkeys-random">
+        <span class="has-mr-6">3.3</span>
+        <span>allkeys-random</span>
+        </a></li><li>
+        <a class="is-flex" href="#volatile-lru">
+        <span class="has-mr-6">3.4</span>
+        <span>volatile-lru</span>
+        </a></li><li>
+        <a class="is-flex" href="#volatile-random">
+        <span class="has-mr-6">3.5</span>
+        <span>volatile-random</span>
+        </a></li><li>
+        <a class="is-flex" href="#volatile-ttl">
+        <span class="has-mr-6">3.6</span>
+        <span>volatile-ttl</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#缓存穿透、缓存击穿、缓存雪崩">
+        <span class="has-mr-6">4</span>
+        <span>缓存穿透、缓存击穿、缓存雪崩</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#缓存穿透">
+        <span class="has-mr-6">4.1</span>
+        <span>缓存穿透</span>
+        </a></li><li>
+        <a class="is-flex" href="#缓存击穿">
+        <span class="has-mr-6">4.2</span>
+        <span>缓存击穿</span>
+        </a></li><li>
+        <a class="is-flex" href="#缓存雪崩">
+        <span class="has-mr-6">4.3</span>
+        <span>缓存雪崩</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#持久化">
+        <span class="has-mr-6">5</span>
+        <span>持久化</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#RDB">
+        <span class="has-mr-6">5.1</span>
+        <span>RDB</span>
+        </a></li><li>
+        <a class="is-flex" href="#AOF">
+        <span class="has-mr-6">5.2</span>
+        <span>AOF</span>
+        </a></li><li>
+        <a class="is-flex" href="#混合持久化">
+        <span class="has-mr-6">5.3</span>
+        <span>混合持久化</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#集群">
+        <span class="has-mr-6">6</span>
+        <span>集群</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#主从复制-Replication">
+        <span class="has-mr-6">6.1</span>
+        <span>主从复制(Replication)</span>
+        </a></li><li>
+        <a class="is-flex" href="#哨兵模式-Sentinel">
+        <span class="has-mr-6">6.2</span>
+        <span>哨兵模式(Sentinel)</span>
+        </a></li><li>
+        <a class="is-flex" href="#Redis-Sharding-客户端分片">
+        <span class="has-mr-6">6.3</span>
+        <span>Redis Sharding(客户端分片)</span>
+        </a></li><li>
+        <a class="is-flex" href="#Redis-Cluster-服务端分片">
+        <span class="has-mr-6">6.4</span>
+        <span>Redis-Cluster(服务端分片)</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#Redis-Cluster原理">
+        <span class="has-mr-6">6.4.1</span>
+        <span>Redis Cluster原理</span>
+        </a></li></ul></li></ul></li><li>
+        <a class="is-flex" href="#一致性hash算法">
+        <span class="has-mr-6">7</span>
+        <span>一致性hash算法</span>
+        </a></li><li>
+        <a class="is-flex" href="#常见优化">
+        <span class="has-mr-6">8</span>
+        <span>常见优化</span>
+        </a></li><li>
+        <a class="is-flex" href="#常见问题">
+        <span class="has-mr-6">9</span>
+        <span>常见问题</span>
+        </a></li></ul>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/jvm/">
+            <span class="level-start">
+                <span class="level-item">jvm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
+            <span class="level-start">
+                <span class="level-item">内存</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/">
+            <span class="level-start">
+                <span class="level-item">工具</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
+            <span class="level-start">
+                <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/redis/">
+            <span class="level-start">
+                <span class="level-item">redis</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E6%9E%B6%E6%9E%84/">
+            <span class="level-start">
+                <span class="level-item">架构</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
+            <span class="level-start">
+                <span class="level-item">源码</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">22</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/spring/">
+            <span class="level-start">
+                <span class="level-item">spring</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+            <span class="level-start">
+                <span class="level-item">线程池</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.67px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/DDD-learn/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg" alt="DDD学习">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:44:54.000Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/DDD-learn/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DDD学习</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%9E%B6%E6%9E%84/">架构</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:31:14.986Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/RedisSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/03/DockerTools/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="Windows下使用Docker启动常用工具">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time></div>
+                    <a href="/2020/05/03/DockerTools/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Windows下使用Docker启动常用工具</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
+                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2021/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2021</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">十二月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">六月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/DDD/">
+                        <span class="tag">DDD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/class/">
+                        <span class="tag">class</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/docker/">
+                        <span class="tag">docker</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/juc/">
+                        <span class="tag">juc</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/jvm/">
+                        <span class="tag">jvm</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/loc/">
+                        <span class="tag">loc</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/redis/">
+                        <span class="tag">redis</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/spring/">
+                        <span class="tag">spring</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
+                        <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9E%B6%E6%9E%84/">
+                        <span class="tag">架构</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
+                        <span class="tag">源码</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+                        <span class="tag">线程池</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%94%81/">
+                        <span class="tag">锁</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">7</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <br>
+                    <img src="/images/logo.png" alt="redis总结" height="20">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2021 yingu&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <span id="busuanzi_value_site_pv">0</span>次访问
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'https://yingu.site',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

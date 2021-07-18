@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>Windows下使用Docker启动常用工具 - yingu的博客</title>
+
+
+    <meta name="description" content="以下配置说明都是基于windows系统 Docker常用命令 docker search 镜像名 ：搜索一个指定的镜像。例如docker search redis,可能会搜索出多个，但是一般选择第一个，也就是starts数最高的一个。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows下使用Docker启动常用工具">
+<meta property="og:url" content="https://yingu.site/2020/05/03/DockerTools/index.html">
+<meta property="og:site_name" content="yingu的博客">
+<meta property="og:description" content="以下配置说明都是基于windows系统 Docker常用命令 docker search 镜像名 ：搜索一个指定的镜像。例如docker search redis,可能会搜索出多个，但是一般选择第一个，也就是starts数最高的一个。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg">
+<meta property="article:published_time" content="2020-05-03T11:12:55.000Z">
+<meta property="article:modified_time" content="2021-07-18T12:31:14.983Z">
+<meta property="article:author" content="yingu">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/cs.ico">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/darcula.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="alternate" href="/atom.xml" title="yingu的博客" type="application/atom+xml">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="Windows下使用Docker启动常用工具" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">主页</a>
+                
+                <a class="navbar-item"
+                href="/archives">文章</a>
+                
+                <a class="navbar-item"
+                href="/categories">分类</a>
+                
+                <a class="navbar-item"
+                href="/tags">标签</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-9-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    13 分钟 读完 (大约 1989 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                Windows下使用Docker启动常用工具
+            
+        </h1>
+        <div class="content">
+            <p><strong>以下配置说明都是基于windows系统</strong></p>
+<h2 id="Docker常用命令"><a href="#Docker常用命令" class="headerlink" title="Docker常用命令"></a>Docker常用命令</h2><ol>
+<li><p><code>docker search 镜像名</code> ：搜索一个指定的镜像。例如<code>docker search redis</code>,可能会搜索出多个，但是一般选择第一个，也就是starts数最高的一个。<a id="more"></a></p>
+</li>
+<li><p><code>docker pull 镜像:版本号</code>: 拉取一个镜像到本地的docker仓库，如果未选择版本号，那么默认使用镜像的最新版本。例如<code>docker pull redis</code>默认会拉取名为<code>redis:latest</code>的镜像，<code>docker pull redis:6.0</code>会拉拉取一个<code>redis 6.0</code>版本的镜像。想知道具体有哪些版本的可以去<a href=""https://hub.docker.com"">DockerHub</a>中查看。</p>
+</li>
+<li><p><code>docker images</code>:查看当前容器的所有镜像，如果刚才使用了<code>docker pull redis</code>命令来拉取，那么此时我们本地仓库中应该就有一个<code>redis</code>镜像。<code>REPOSITORY</code>表示资源，<code>IMAGE_ID</code>就表示镜像的ID，<code>TAG</code>表示镜像的版本，我们也可以将<code>TAG</code>修改为我们自己习惯的标签。</p>
+</li>
+<li><p><code>docker run -itd -v  宿主机目录:容器目录 -p 宿主机端口:容器端口  --name 容器名 --restart=always 镜像ID</code> ： </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd -v &#x2F;C&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf -v &#x2F;C&#x2F;redis&#x2F;data:&#x2F;data -p 6379:6379 --name redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf --restart&#x3D;always redis</span><br></pre></td></tr></table></figure>
+
+<p>通过<code>docker run</code>命令启动一个容器：</p>
+<ul>
+<li><code>-i</code>  ：以交互模式运行容器，通常与 -t 同时使用。</li>
+<li><code>-t</code>：为容器重新分配一个伪输入终端，通常与 -i 同时使用</li>
+<li><code>-d</code> ：后台运行容器，并返回容器ID</li>
+<li><code>-e</code> ：传递环境变量</li>
+<li>上面三个命令可以写到一起也就是上面的<code>-itd</code>，当然你也可以<code>-i -t -d</code></li>
+<li><code>-v</code> ：挂载宿主机的一个目录，上面就是将容器中<code>/etc/redis/redis.conf</code>的文件挂载到我本机的C盘下redis目录下的<code>redis.conf</code>文件，同理<code>/C/redis/data:/data</code>就是将容器中的/data目录挂载到C盘下的<code>/redis/data</code>目录中。</li>
+<li><code>-p</code>：映射一个端口，本机上可以通过映射的端口访问到容器的端口</li>
+<li><code>--name</code>：为启动的容器起一个名称</li>
+<li><code>--restart=always</code>：表示是否随docker启动，类似于windows中的一个开机启动。如果未设置那么默认为不随docker启动</li>
+<li><code>IMAGE_ID</code> ：表示通过指定镜像启动的容器，上面命令中是通过REPOSITORY来启动的，效果跟直接使用<code>IMAGE_ID</code> 一样，通过<code>REPOSITORY:TAG</code>的方式可以确定一个镜像，上面未指定TAG默认为<code>redis:latest</code>。</li>
+</ul>
+</li>
+<li><p><code>docker ps</code>：查看运行中的容器，如果通过<code>docker run</code>启动成功后，就有一个名为 redis-server的容器了，<code>CONTAINER ID</code>表示容器ID，<code>IMAGE</code>表示基于哪一个镜像启动的。</p>
+</li>
+<li><p><code>docker ps -a</code>：查看所有容器</p>
+</li>
+<li><p><code>docker exec -it 容器ID /bin/bash</code>：表示在运行的容器中执行命令</p>
+</li>
+<li><p><code>docker cp 容器ID:目录路径 宿主机路径</code>：将容器中指定目录文件拷贝到宿主机目录中</p>
+</li>
+<li><p><code>docker cp 宿主机路径 容器ID:目录路径</code>：将宿主机目录的文件拷贝到容器中</p>
+</li>
+<li><p><code>docker stop 容器ID</code>：停止一个容器</p>
+</li>
+<li><p><code>docker start 容器ID</code>: 启动一个容器</p>
+</li>
+<li><p><code>docker restart 容器ID</code>：重启一个容器</p>
+</li>
+<li><p><code>docker rm 容器ID</code>：删除一个容器</p>
+</li>
+<li><p><code>docker rmi 镜像ID</code>：删除一个镜像，如果镜像下面有容器，会提示无法删除，如果强制删除添加-f</p>
+</li>
+<li><p><code>docker commit -a 提交人 -m 备注 容器ID 仓库名:标签</code>：将容器提交为一个镜像。例如：<code>docker commit -m &#39;commit images&#39; -a &#39;zhangsan&#39;  9adeb59430256  redis:test</code></p>
+</li>
+<li><p><code>docker load -i myredis.tar</code>:将宿主机的<code>myredis.tar</code>加载到docker中，加载成功后docker中会多一个刚才导入的镜像</p>
+</li>
+<li><p><code>docker save -o es.tar redis:test1 redis:test2</code>:将docker中的多个镜像打包到宿主机中</p>
+</li>
+<li><p><code>docker logs  --since 30m 容器ID</code>：查询指定容器30分钟内的日志</p>
+</li>
+</ol>
+<h2 id="Docker启动portainer"><a href="#Docker启动portainer" class="headerlink" title="Docker启动portainer"></a>Docker启动portainer</h2><p><code>Portainer</code>是<code>Docker</code>的图形化管理工具，提供状态显示面板、应用模板快速部署、容器镜像网络数据卷的基本操作。启动命令：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -p <span class="number">9000</span>:<span class="number">9000</span> -v /<span class="keyword">var</span>/run/docker.sock:/<span class="keyword">var</span>/run/docker.sock -v /C/portainer:/data --name portainer-server --restart=always portainer/portainer</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-v /var/run/docker.sock:/var/run/docker.sock</code>：加上此设置表示本地模式，不加表示远程模式。</li>
+<li><code>-v /C/portainer:/data</code>：将<code>portainer</code>的数据目录映射到本机中。</li>
+</ul>
+<p>如果是在windows中使用<code>portainer</code>,由于<code>portainer</code>是在容器中，此时<code>portainer</code>想管理宿主机中的<code>docker</code>服务，就必须将宿主机的端口暴露出来，让<code>portainer</code>访问。</p>
+<ol>
+<li>右键docker图标打开setting-&gt;General会看到<code>Expose daemon on tcp://localhost:2375 without TLS</code>选项，将这个设置勾上即可。</li>
+<li>通过<a href="http://localhost:9000访问到`portainer`后，如果是第一次访问需要先设置密码，登陆后在`Remote`标签页`EndPoint">http://localhost:9000访问到`portainer`后，如果是第一次访问需要先设置密码，登陆后在`Remote`标签页`EndPoint</a> Url<code>处填上</code>docker.for.win.localhost:2375<code>，</code>name<code>自己随便取个名，然后点击</code>Connect`按钮即可。</li>
+</ol>
+<h2 id="Docker启动redis"><a href="#Docker启动redis" class="headerlink" title="Docker启动redis"></a>Docker启动redis</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd -v &#x2F;C&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf -v &#x2F;C&#x2F;redis&#x2F;data:&#x2F;data -p 6379:6379 --name redis-server --restart&#x3D;always redis &#x2F;etc&#x2F;redis&#x2F;redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-v /C/redis/redis.conf:/etc/redis/redis.conf</code>：将redis的配置映射出来，这样每次修改配置通过本机即可</li>
+<li><code>-v /C/redis/data:/data</code>：将redis中的数据目录映射出来，避免误删容器导致数据丢失。</li>
+<li><code>--appendonly yes</code>：打开redis持久化配置</li>
+<li><code>--restart=always</code>：随容器启动</li>
+</ul>
+<h2 id="Docker启动nginx"><a href="#Docker启动nginx" class="headerlink" title="Docker启动nginx"></a>Docker启动nginx</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd -p 80:80 -v &#x2F;C&#x2F;nginx&#x2F;nginx.conf:&#x2F;etc&#x2F;nginx&#x2F;nginx.conf -v &#x2F;C&#x2F;nginx&#x2F;conf.d&#x2F;default.conf -v &#x2F;C&#x2F;nginx&#x2F;log:&#x2F;var&#x2F;log&#x2F;nginx --name nginx-server nginx</span><br><span class="line">--restart&#x3D;always</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-v /C/nginx/nginx.conf:/etc/nginx/nginx.conf</code>：将nginx的配置文件映射出来</li>
+<li><code>-v /C/nginx/log:/var/log/nginx</code>：将日志映射出来</li>
+<li><code>--restart=always</code>：随容器启动</li>
+</ul>
+<h2 id="Docker启动mysql"><a href="#Docker启动mysql" class="headerlink" title="Docker启动mysql"></a>Docker启动mysql</h2><p>此处使用5.7版本，8.0版本需要设置加密方式比较麻烦</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd -p 3307:3306 -v &#x2F;C&#x2F;mysql&#x2F;my.cnf:&#x2F;etc&#x2F;mysql&#x2F;my.cnf -v &#x2F;C&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql --name mysql-server -e MYSQL_ROOT_PASSWORD&#x3D;123456  </span><br><span class="line">--restart&#x3D;always mysql:5.7</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-v /C/mysql/my.cnf:/etc/mysql/my.cnf</code>：将<code>mysql</code>的配置文件映射出来</li>
+<li><code>-v /C/mysql/data:/var/lib/mysql</code>：将<code>mysql</code>的数据目录映射出来</li>
+<li><code>-e MYSQL_ROOT_PASSWORD=123456</code>：首次启动时需要指定root密码</li>
+<li><code>--restart=always</code>：随容器启动</li>
+</ul>
+<h2 id="Docker启动rabbitmq"><a href="#Docker启动rabbitmq" class="headerlink" title="Docker启动rabbitmq"></a>Docker启动rabbitmq</h2><p><code>docker search rabbitmq:3.7.7-management</code>这种是带控制台的，如果直接使用<code>rabbitmq</code>拉取的没有控制台</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd -p 5672:5672 -p 15672:15672 -v --hostname my-rabbitmq -e RABBITMQ_DEFAULT_VHOST&#x3D;my-vhost -e RABBITMQ_DEFAULT_USER&#x3D;admin -e  RABBITMQ_DEFAULT_PASS&#x3D;admin --name rabbitmq-server --restart&#x3D;always rabbitmq:3.7.7-management</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-p 5672:5672 -p 15672:15672</code>：1572是<code>rabbitmq</code>服务端口，15672是<code>rabbitmq</code>控制台端口</li>
+<li>-<code>-hostname my-rabbitmq</code> ：主机名</li>
+<li><code>-e RABBITMQ_DEFAULT_VHOST=my-vhost</code>：指定虚拟机</li>
+<li><code>-e RABBITMQ_DEFAULT_USER=admin</code> ：指定用户名</li>
+<li><code>-e RABBITMQ_DEFAULT_PASS=admin：</code>：指定密码</li>
+<li><code>--restart=always</code>：随容器启动</li>
+</ul>
+<h2 id="Docker启动nacos"><a href="#Docker启动nacos" class="headerlink" title="Docker启动nacos"></a>Docker启动nacos</h2><p>通过mysql创建 <a href="https://github.com/alibaba/nacos/blob/develop/config/src/main/resources/META-INF/nacos-db.sql">nacos-db.sql</a> 中的表，由于nacos和mysql都在docker中，配置<code>MYSQL_SERVICE_HOST</code>时，使用docker中mysql服务的ip地址。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd  -e PREFER_HOST_MODE&#x3D;hostname -v &#x2F;C&#x2F;nacos&#x2F;logs:&#x2F;home&#x2F;nacos&#x2F;logs  -e MODE&#x3D;standalone  -e SPRING_DATASOURCE_PLATFORM&#x3D;mysql  -e MYSQL_SERVICE_HOST&#x3D;172.17.0.3 -e MYSQL_SERVICE_PORT&#x3D;3306 -e MYSQL_SERVICE_USER&#x3D;root -e MYSQL_SERVICE_PASSWORD&#x3D;123456 -e MYSQL_SERVICE_DB_NAME&#x3D;nacos-config -e MYSQL_SLAVE_SERVICE_HOST&#x3D;172.17.0.3 -p 8848:8848  --name nacos-server --restart&#x3D;always  nacos&#x2F;nacos-server</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-e PREFER_HOST_MODE=hostname ：表示支持hostname，默认为ip模式</li>
+<li>-e MODE=standalone：表示单机模式</li>
+<li>-v /C/nacos/logs:/home/nacos/logs：将日志映射出来</li>
+<li>-e MYSQL_SERVICE_*：MYSQL_SERVICE_开头的为mysql的配置信息</li>
+</ul>
+<h2 id="Docker启动elasticsearch"><a href="#Docker启动elasticsearch" class="headerlink" title="Docker启动elasticsearch"></a>Docker启动elasticsearch</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd --restart&#x3D;always --name elasticsearch-server -v  &#x2F;C&#x2F;elasticsearch&#x2F;config&#x2F;elasticsearch.yml:&#x2F;usr&#x2F;share&#x2F;elasticsearch&#x2F;config&#x2F;elasticsearch.yml -v &#x2F;C&#x2F;elasticsearch&#x2F;data:&#x2F;usr&#x2F;share&#x2F;elasticsearch&#x2F;data -v  &#x2F;C&#x2F;elasticsearch&#x2F;logs:&#x2F;usr&#x2F;share&#x2F;elasticsearch&#x2F;logs -p 9200:9200 -p 9300:9300 -e &quot;discovery.type&#x3D;single-node&quot; elasticsearch</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+        
+            <ul class="post-copyright">
+                <li><strong>本文标题：</strong><a href="https://yingu.site/2020/05/03/DockerTools/">Windows下使用Docker启动常用工具</a></li>
+                <li><strong>本文作者：</strong><a href="https://yingu.site">yingu</a></li>
+                <li><strong>本文链接：</strong><a href="https://yingu.site/2020/05/03/DockerTools/">https://yingu.site/2020/05/03/DockerTools/</a></li>
+                <li><strong>发布时间：</strong>2020-05-03</li>
+                <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+                </li>
+            </ul>
+        
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/docker/" rel="tag">docker</a>, <a class="has-link-grey -link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/zfb.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/wx.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/05/04/RedisSummary/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">redis总结</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/04/28/Spring-loc-1/">
+                <span class="level-item">【Springloc流程解析】--1. Springloc的基本组件和流程</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">评论</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: '4e02017ba5f2640526d2',
+        clientSecret: '47b3b7e29deec692d92a8192f00de398555ce9ca',
+        id: '4077d007953b0962874cbc8dd7de4adb',
+        repo: 'gitalk-commnet',
+        owner: '330129161',
+        admin: ["330129161"],
+        createIssueManually: false,
+        distractionFreeMode: false
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/avatar.png" alt="yingu">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        yingu
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        stop
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>hang zhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <a href="/archives">
+                        <p class="title has-text-weight-normal">
+                            29
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <a href="/categories">
+                        <p class="title has-text-weight-normal">
+                            13
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <a href="/tags">
+                        <p class="title has-text-weight-normal">
+                            18
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://gitee.com/zero123123" target="_blank" rel="noopener">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="Github" href="https://github.com/330129161">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" rel="noopener"
+                title="码云" href="https://gitee.com/zero123123">
+                
+                <i class="fab fa-git"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+
+    <div class="card widget" id="toc">
+        <div class="card-content">
+            <div class="menu">
+                <h3 class="menu-label">
+                    目录
+                </h3>
+                <ul class="menu-list"><li>
+        <a class="is-flex" href="#Docker常用命令">
+        <span class="has-mr-6">1</span>
+        <span>Docker常用命令</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动portainer">
+        <span class="has-mr-6">2</span>
+        <span>Docker启动portainer</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动redis">
+        <span class="has-mr-6">3</span>
+        <span>Docker启动redis</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动nginx">
+        <span class="has-mr-6">4</span>
+        <span>Docker启动nginx</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动mysql">
+        <span class="has-mr-6">5</span>
+        <span>Docker启动mysql</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动rabbitmq">
+        <span class="has-mr-6">6</span>
+        <span>Docker启动rabbitmq</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动nacos">
+        <span class="has-mr-6">7</span>
+        <span>Docker启动nacos</span>
+        </a></li><li>
+        <a class="is-flex" href="#Docker启动elasticsearch">
+        <span class="has-mr-6">8</span>
+        <span>Docker启动elasticsearch</span>
+        </a></li></ul>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友情链接
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="http://www.bestarnold.com/" target="_blank" rel="noopener">
+                    <span class="level-left">
+                        <span class="level-item">Arnold</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">www.bestarnold.com</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/jvm/">
+            <span class="level-start">
+                <span class="level-item">jvm</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%86%85%E5%AD%98/">
+            <span class="level-start">
+                <span class="level-item">内存</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
+            <span class="level-start">
+                <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/">
+            <span class="level-start">
+                <span class="level-item">工具</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/docker/">
+            <span class="level-start">
+                <span class="level-item">docker</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%B7%A5%E5%85%B7/redis/">
+            <span class="level-start">
+                <span class="level-item">redis</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E6%9E%B6%E6%9E%84/">
+            <span class="level-start">
+                <span class="level-item">架构</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/">
+            <span class="level-start">
+                <span class="level-item">源码</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">22</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/spring/">
+            <span class="level-start">
+                <span class="level-item">spring</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E5%B9%B6%E5%8F%91/">
+            <span class="level-start">
+                <span class="level-item">并发</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+            <span class="level-start">
+                <span class="level-item">线程池</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+            <span class="level-start">
+                <span class="level-item">阻塞队列</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">7</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BA%90%E7%A0%81/%E9%9B%86%E5%90%88/">
+            <span class="level-start">
+                <span class="level-item">集合</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 11.67px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/DDD-learn/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg" alt="DDD学习">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:44:54.000Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/DDD-learn/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DDD学习</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%9E%B6%E6%9E%84/">架构</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2021/07/18/MySqlSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="MySqlSummary">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-18T12:31:14.986Z">2021-07-18</time></div>
+                    <a href="/2021/07/18/MySqlSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">MySqlSummary</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/04/RedisSummary/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="redis总结">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-04T05:15:42.000Z">2020-05-04</time></div>
+                    <a href="/2020/05/04/RedisSummary/" class="title has-link-black-ter is-size-6 has-text-weight-normal">redis总结</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/redis/">redis</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/05/03/DockerTools/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="Windows下使用Docker启动常用工具">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-05-03T11:12:55.000Z">2020-05-03</time></div>
+                    <a href="/2020/05/03/DockerTools/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Windows下使用Docker启动常用工具</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a> / <a class="has-link-grey -link" href="/categories/%E5%B7%A5%E5%85%B7/docker/">docker</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
+                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2021/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2021</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">十二月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">六月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/DDD/">
+                        <span class="tag">DDD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/class/">
+                        <span class="tag">class</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/docker/">
+                        <span class="tag">docker</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/java/">
+                        <span class="tag">java</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/juc/">
+                        <span class="tag">juc</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/jvm/">
+                        <span class="tag">jvm</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/loc/">
+                        <span class="tag">loc</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/redis/">
+                        <span class="tag">redis</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/spring/">
+                        <span class="tag">spring</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
+                        <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B9%B6%E5%8F%91/">
+                        <span class="tag">并发</span>
+                        <span class="tag is-grey">8</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9E%B6%E6%9E%84/">
+                        <span class="tag">架构</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81/">
+                        <span class="tag">源码</span>
+                        <span class="tag is-grey">22</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+                        <span class="tag">线程池</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%94%81/">
+                        <span class="tag">锁</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/">
+                        <span class="tag">阻塞队列</span>
+                        <span class="tag is-grey">7</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9B%86%E5%90%88/">
+                        <span class="tag">集合</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <br>
+                    <img src="/images/logo.png" alt="Windows下使用Docker启动常用工具" height="20">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2021 yingu&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                <span id="busuanzi_container_site_pv">
+                <span id="busuanzi_value_site_pv">0</span>次访问
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+
+<script>
+var IcarusThemeSettings = {
+    site: {
+        url: 'https://yingu.site',
+        external_link: {"enable":true,"exclude":[]}
+    },
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'unfolded'
+        }
+    }
+};
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+
+
+<script src="/js/animation.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>
