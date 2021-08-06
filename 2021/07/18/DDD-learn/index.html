@@ -19,7 +19,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-15.jpg">
 <meta property="article:published_time" content="2021-07-18T12:44:54.000Z">
-<meta property="article:modified_time" content="2021-07-25T13:59:22.065Z">
+<meta property="article:modified_time" content="2021-07-28T01:22:56.952Z">
 <meta property="article:author" content="yingu">
 <meta property="article:tag" content="java">
 <meta property="article:tag" content="DDD">
@@ -143,7 +143,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    24 分钟 读完 (大约 3635 个字)
+                    29 分钟 读完 (大约 4360 个字)
                 </span>
                 
                 
@@ -162,17 +162,31 @@
         </h1>
         <div class="content">
             <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>第一次听到DDD，还是通过技术群内部大佬们的闲聊得知。本着求知的心态，在网上简单看了一下DDD相关的知识。晦涩的术语，抽象的描述，看了半天不禁感叹，大佬们之间的聊天话题，果然不是我等咸鱼可以企及的。<a id="more"></a>看着大佬们在群里谈笑风生，羡慕他们广阔的知识面之余，我也对DDD产生了兴趣，接着便是加大力度在网上搜索相关的文章、视频。文章很多，视频很少，能让我这种咸鱼看完之后能理解的，更是少之又少。不过也不是毫无收获，总的看下来，对DDD也是有了一定的理解。接下来我将通过我所看到的文章、视频、以及我自身对DDD的理解，以我能理解的方式，对DDD中比较常见的概念、术语做一个总结，除了巩固一下自身对DDD的认识，也希望能给看到这篇文章的同学，提供学习DDD方面的参考。在这里给大家推荐<a href="https://zhuanlan.zhihu.com/p/366395817">&lt;&lt;阿里技术专家详解DDD系列&gt;&gt;</a>。</p>
-<h2 id="什么是DDD"><a href="#什么是DDD" class="headerlink" title="什么是DDD"></a>什么是DDD</h2><p>DDD即<code>domain-driven design</code>（领域驱动设计)，它是一种架构思想，而非实际使用的框架。在传统的开发模式中，经常是接到业务后，我们就开始根据业务涉及的场景、交互方式、页面元素等信息，来构建我们的表模型、画流程图，最终通过对数据的操作来实现我们的功能，这就是典型的数据驱动。而DDD思想主张从业务角度出发，对业务模型进行分析，构建我们的领域模型，通过领域模型来驱动最终的设计。</p>
+<h2 id="什么是DDD"><a href="#什么是DDD" class="headerlink" title="什么是DDD"></a>什么是DDD</h2><p>DDD即<code>domain-driven design</code>（领域驱动设计)，它是一种架构思想，而非实际使用的框架。在传统的开发模式中，经常是接到业务后，我们就开始根据业务涉及的场景、交互方式、页面元素等信息，来构建我们的表模型、画流程图，最终通过对数据的操作来实现我们的功能，这就是典型的数据驱动设计。而DDD思想主张从业务角度出发，对业务模型进行分析，通过构建我们的领域模型，由领域来驱动设计。</p>
 <h2 id="DDD术语"><a href="#DDD术语" class="headerlink" title="DDD术语"></a>DDD术语</h2><p>领域驱动设计主要分为了两个过程：战略设计、战术设计。战略设计主要是通过系统整体，来帮助我们划分领域以及处理领域间的关系；而战术设计则从设计实现的层面教会我们如何具体地实施DDD，更偏向于开发。</p>
-<h3 id="战略设计"><a href="#战略设计" class="headerlink" title="战略设计"></a>战略设计</h3><p>DDD的战略设计主要包括领域/子域、通用语言、限界上下文和架构风格等概念。</p>
-<h4 id="Bounded-Context（限界上下文）"><a href="#Bounded-Context（限界上下文）" class="headerlink" title="Bounded Context（限界上下文）"></a>Bounded Context（限界上下文）</h4><blockquote>
-<p>限界上下文告诉我们，同一个概念，不必总是对应于一个单一模型，也可以对应于多个模型。用限界上下文明确模型要解决的问题，可以保持每个模型的清晰。限界上下文是领域模型的边界，也就是领域知识的边界。和上下文主题紧密相关的模型内聚在上下文内，而其他模型被会分到其他限界上下文中。限界上下文内的领域知识是高内聚低耦合的。</p>
+<h3 id="战略设计"><a href="#战略设计" class="headerlink" title="战略设计"></a>战略设计</h3><p>DDD的战略设计主要包括领域/子域、通用语言、限界上下文等概念。</p>
+<h4 id="领域"><a href="#领域" class="headerlink" title="领域"></a>领域</h4><p>百度百科对领域的解释：</p>
+<blockquote>
+<p>具体指一种特定的范围或区域，一种专门活动或事业的范围、部类或部门。</p>
 </blockquote>
-<p>例如：我购买了一套复式的毛坯房，准备自己装修设计，一楼朝南部分划分一大块区域做为客厅，旁边划分一小块区域做为厨房，朝北的做为厕所。二楼划分了两块，大的一块做为卧室、小的做为阳台。我通过房子的朝向、风口，来划分客厅、阳台、厕所的动作，其实就是通过分析当前的场景，来划分领域。区域覆盖的范围，代表不同的领域模型，范围的边界就是我们的所说的“限界上下文”。简单理解，限界上下文就是领域模型的边界。</p>
-<h4 id="Context-Map（上下文映射）"><a href="#Context-Map（上下文映射）" class="headerlink" title="Context Map（上下文映射）"></a>Context Map（上下文映射）</h4><p>我们知道Mybatis它是一个ORM框架。ORM即“对象关系映射”，它的作用是在关系型数据库和业务实体对象之间作一个映射，这样我们在具体的操作业务对象的时候，就不需要再去和复杂的SQL。而我们上下文映射与之类似，对应领域中的一种映射关系，主要是解决不同领域见通讯的问题。前面我们将房子根据场景分配了几个大小不一区域，从客厅去我们的卧室，需要通过连接一楼到二楼的楼梯，去厨房我们需要经过走廊，从一个领域到达另一个领域模型，连接楼层的楼梯与连接客厅厨房的走廊，其实就对应着领域上下文之间的映射。</p>
-<h4 id="Ubiquitous-Lanuage（上下文通用语言）"><a href="#Ubiquitous-Lanuage（上下文通用语言）" class="headerlink" title="Ubiquitous Lanuage（上下文通用语言）"></a>Ubiquitous Lanuage（上下文通用语言）</h4><p>如何理解上下文通用语言，还是用前面建房子来举例，分配完各自的区域后，我们需要在各自的区域装上门，我们将门装到厕所，那么它就是厕门，如果装在客厅，那么它就是大门。同样的门，被安装在不同的区域（领域上下文），表达的意思也是不同。因此，每个领域上下文都有自己的通用语言，在领域内，就能通过“通用语言”来理解事物的状态或行为。</p>
+<p>由此可以看出：领域就是来确定范围的，范围即边界，DDD 的领域就是要解决的业务范围。例如在电商系统中，可能有“商品领域”，“订单领域”，“仓储领域”，“物流领域”。而领域模型指的就是业务的载体，例如，商品，订单。</p>
+<h4 id="子域"><a href="#子域" class="headerlink" title="子域"></a>子域</h4><p>既然领域是用来限定业务边界和范围的，那么就会有大小之分，领域越大，业务范围就越大，反之则相反。如果一个领域过大，还可以把领域可以进一步划分为子领域。划分出来的多个子领域称为子域，每个子域对应一个更小的问题域或更小的业务范围。根据重要性与功能将可以领域分为大致三类的多个子域，分别是核心域、支撑子域和通用子域。</p>
+<p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/%E9%A2%86%E5%9F%9F%E5%9B%BE.jpeg" alt=""></p>
+<ul>
+<li>核心域：决定产品和公司核心竞争力的子域，是业务成功的主要因素和公司的核心竞争力。</li>
+<li>支撑子域：既不包含决定产品和公司核心竞争力的功能，也不包含通用功能的子域，但又是必需的支撑域。支撑域具有企业特性，但不具通用性，例如数据代码类的数据字典等系统。</li>
+<li>通用子域：没有太多个性化需求，同时被多个子域使用的通用功能子域。比如认证、权限等，无企业特点限制，无需太多定制化。</li>
+</ul>
+<p>例如在一个商城系统中，用户下单、支付、退款是商城中最基本也是最核心的功能，也就是核心域；会员、意见反馈等不影响主要功能的就是支撑子领域；认证、权限、消息等基础服务，可通用且与业务关系不大的功能就是通用子域。</p>
+<h4 id="Bounded-Context（限界上下文）"><a href="#Bounded-Context（限界上下文）" class="headerlink" title="Bounded Context（限界上下文）"></a>Bounded Context（限界上下文）</h4><blockquote>
+<p>每个限界上下文专注于解决某个特定的子域的问题。 每个子域都对应一个明确的问题，提供独立的价值，所以每个子域都相对独立。 子域及其对应的限界上下文中的模型会因为其要解决的问题变化而变化，不会因为其他子域的变化而变化，即低耦合；当一个子域发生变化时，只需要修改其对应限界上下文中的模型，不需要变动其他子域的模型，即高内聚。</p>
+</blockquote>
+<p>我们对Context（上下文）的概念应该并不陌生，平时开发中我们经常会将“上下文”理解为“作用域”，或者说是一个“范围”。例如我们的Spring Context、Session Context。我们通过当前所处的上下文环境，来判断某些状态、行为的作用或代表的含义。DDD中的限界上下文也是同一个道理，它表示领域的边界。在上下文覆盖的范围，领域内的状态或行为有自己的含义。</p>
+<p>例如：我购买了一套复式的毛坯房，准备自己装修设计，一楼朝南部分划分一大块区域做为客厅，旁边划分一小块区域做为厨房，朝北的做为厕所。二楼划分了两块，大的一块做为卧室、小的做为阳台。我通过房子的朝向、风口，来划分客厅、阳台、厕所，其实就是通过分析当前的场景，来划分领域的动作。区域覆盖的范围，代表不同的领域，它的边界，就是我们的所说的“限界上下文”，范围也被赋予了含义。</p>
+<h4 id="Context-Map（上下文映射）"><a href="#Context-Map（上下文映射）" class="headerlink" title="Context Map（上下文映射）"></a>Context Map（上下文映射）</h4><p><strong>上下文映射</strong>，表示界限上下文的一种映射关系，它可以让我们从宏观上看到每个上下文之间的联系，一旦发现某个限界上下文与过多的其它限界上下文具有联系，我们就可以对限界上下文进行细分了。前面我们将房子根据场景分配了几个大小不一区域，从客厅去我们的卧室，需要通过连接一楼到二楼的楼梯，去厨房我们需要经过走廊，从一个领域到达另一个领域，连接楼层的楼梯与连接客厅厨房的走廊，其实就对应着领域上下文之间的映射。</p>
+<h4 id="Ubiquitous-Lanuage（上下文通用语言）"><a href="#Ubiquitous-Lanuage（上下文通用语言）" class="headerlink" title="Ubiquitous Lanuage（上下文通用语言）"></a>Ubiquitous Lanuage（上下文通用语言）</h4><p><strong>限界上下文</strong>需要通过<strong>上下文通用语言</strong>来理解领域模型代表的动作与含义。还是用前面建房子来举例，我分配完各自的区域后，需要在各自的区域装上门，将门装到厕所，它就是厕门；装在客厅，它就是大门。同样的门，被安装在不同的区域（领域上下文），表达的意思也不同，这就是我们所说的“上下文通用语言”。在汉语中，我们可以将<strong>界限上下文</strong>理解为“语境”，上下文通用语言理解为“语意”。在不同的“语境”，“语意”的含义也不同。</p>
 <h3 id="战术设计"><a href="#战术设计" class="headerlink" title="战术设计"></a>战术设计</h3><p>与战略设计不同，战术设计更关注代码层面的实现，通过面向对象的思维设计类的属性与方法，将DDD落地到实际的开发中。</p>
-<h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><h5 id="Entity（实体）"><a href="#Entity（实体）" class="headerlink" title="Entity（实体）"></a>Entity（实体）</h5><p>通俗来讲，就是由方法和属性实现业务的类，与传统的VO（View Object）只有getter、setter方法不同，实体一般由唯一标识ID和值对象组成，并且有自己的状态和行为，并且状态的变更也会影响到行为，状态与行为应该保持一致。DDD中将VO（View Object）这种只有getter、setter方法，没有状态、行为的对象称之为“贫血对象”，而Entity是属于充血对象的一种。对象是否拥有状态与行为，是判断是否对象是否贫血的依据，此处不多做概述。</p>
+<h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><h5 id="Entity（实体）"><a href="#Entity（实体）" class="headerlink" title="Entity（实体）"></a>Entity（实体）</h5><p>通俗来讲，就是由方法和属性实现业务的类，与传统的VO（View Object）只有getter、setter方法不同，实体一般由唯一标识ID和值对象组成，并且有自己的状态和行为，并且状态的变更也会影响到行为，状态与行为应该保持一致。DDD中将VO（View Object）这种只有getter、setter方法，没有状态、行为的对象称之为“贫血对象”，而Entity是属于“充血对象”的一种。对象是否拥有状态与行为，是判断对象是否贫血的依据。</p>
 <p>例如：人通过身份证号作为唯一标识，具有唯一性，我们也有自己状态，与自己的行为。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//Id作为唯一标识</span></span><br><span class="line">	<span class="keyword">private</span> String idCard;</span><br><span class="line">	</span><br><span class="line">  <span class="comment">//姓名</span></span><br><span class="line">	<span class="keyword">private</span> String name;</span><br><span class="line">	</span><br><span class="line">  <span class="comment">//年龄</span></span><br><span class="line">	<span class="keyword">private</span> String age;</span><br><span class="line">	</span><br><span class="line">  <span class="comment">//性别</span></span><br><span class="line">	<span class="keyword">private</span> Integer sex;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//家庭住址</span></span><br><span class="line">  <span class="keyword">private</span> Address address;</span><br><span class="line">	</span><br><span class="line">  <span class="comment">//是否已成年, 表示状态</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAdult</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> age &gt;= <span class="number">18</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//喝酒</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">drinkWine</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!isAdult()) &#123;</span><br><span class="line">      System.out.print(<span class="string">"未成年人不能饮酒！"</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      System.out.print(<span class="string">"吨吨吨。。。"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -180,7 +194,7 @@
 <p>没有唯一标识，不具备唯一性，具有校验、判断逻辑，只关心对象的值，没有状态和行为。</p>
 </blockquote>
 <p>值对象，顾名思义这是一个由“值”组成的对象。“值”代表的含义，其实就是指没有状态的属性。</p>
-<p>例如：在一个订单领域中，Address只作为地址信息来说，它就不具备唯一性，作为一个值对象，它没有任何行为。当然你也可以为Address赋予唯一的含义与标识，在地图领域中，Address可能代表的是北京、或者上海，你可以给它加上唯一标识，但此时，他也就不是一个值对象了。也就是说，一个对象在DDD的概念中，对象代表的概念，并不是非黑即白。当它处于不同的领域上下文时，代表着不同的含义，其实也就是上面所说到“上下文通用语言”的这么一个概念。</p>
+<p>例如：在一个订单领域中，Address只作为地址信息来说，它就不具备唯一性，作为一个值对象，它没有任何行为。当然你也可以为Address赋予唯一的含义与标识，在地图领域中，Address可能代表的是北京、或者上海，你可以给它加上唯一标识，但此时，他也就不是一个值对象了。也就是说，一个对象在DDD的概念中，对象代表的概念，并不是非黑即白。当它处于不同的领域上下文时，代表着不同的含义，其实也就是上面所说到的“限界上下文”这么一个概念。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> String city;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> String province;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> String district;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取完整地址</span></span><br><span class="line"> 	<span class="function"><span class="keyword">public</span> String <span class="title">getCompleteAddress</span> <span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> province + city + district</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h5 id="Aggregate（聚合）"><a href="#Aggregate（聚合）" class="headerlink" title="Aggregate（聚合）"></a>Aggregate（聚合）</h5><blockquote>
@@ -189,12 +203,9 @@
 <p>聚合在DDD中是跟领域挂钩的，它通过实体与值对象组成；本质上就是建立了一个比对象粒度更大的边界，用于聚集那些紧密关联的对象，形成了一个业务上的对象整体。例如下面这个类：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Emp</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//员工ID，值对象</span></span><br><span class="line">  <span class="keyword">private</span> AgentId agentId;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">//员工基础信息, 值对象</span></span><br><span class="line">  <span class="keyword">private</span> EmpBaseInfo empBaseInfo;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//个人身份信息，实体</span></span><br><span class="line">  <span class="keyword">private</span> Person person;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//工作地址</span></span><br><span class="line">  <span class="keyword">private</span> Address address;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//员工基本信息</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EmpBaseInfo</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">   <span class="comment">//花名</span></span><br><span class="line">  <span class="keyword">private</span> String nickName;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//职级</span></span><br><span class="line">  <span class="keyword">private</span> Integer level;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h5 id="Factories（工厂）"><a href="#Factories（工厂）" class="headerlink" title="Factories（工厂）"></a>Factories（工厂）</h5><blockquote>
-<p>复杂对象的创建是领域层的职责，但这项任务并不一定属于那些用于表示模型的对象，他们没有对应模型中的事物，但又确实承担了领域层的职责。应该将创建复杂对象和聚合的职责转移给单独的对象，这个对象本身可能没有承担领域模型中的职责，但它仍然领域设计的一部分。提供一个封装所有复杂装配操作的接口，而且这个接口不需要客户引用要被实例化的对象的具体类。在创建聚合时要把它作为一个整体，并确保它满足固定规则。</p>
-</blockquote>
-<p>上面的描述已经很清楚了，Factories的作用，就是用来创建复杂的对象或聚合根的。</p>
-<h5 id="Repositories（仓储）"><a href="#Repositories（仓储）" class="headerlink" title="Repositories（仓储）"></a>Repositories（仓储）</h5><p>日常开发中，我们也经常会见到Repositories，作为一个Dao，他主要负责操作DO对象，与底层数据库进行交互。但是在DDD中，Repositories不等于Dao，Repository对应的是对Entity对象读取储存的抽象，在接口层面做统一，不关注底层实现。Repository的具体实现类通过调用Dao来实现各种操作，通过Builder/Factory对象实现DO到Entity之间的转化。DDD中资源的访问与维护只能由Repositories来操作。</p>
-<h5 id="Domain-Service-领域服务"><a href="#Domain-Service-领域服务" class="headerlink" title="Domain Service (领域服务)"></a>Domain Service (领域服务)</h5><p>当某个行为不属于任何一个领域时，那么就领域服务来涉及多个领域对象的操作。&lt;阿里技术专家详解DDD系列&gt;&gt;中就举了一个猎人与野兽的例子，如果猎人有攻击野兽这么一个行为，映射到我们领域模型中，那么是在猎人领域中攻击了野兽，还是野兽领域中被猎人攻击，此时在代码层面，攻击野兽这个行为，无论放到哪个领域中都不太合理，因此需要一个领域服务来专门处理这种跨领域的行为。</p>
+<h5 id="Factories（工厂）"><a href="#Factories（工厂）" class="headerlink" title="Factories（工厂）"></a>Factories（工厂）</h5><p>复杂对象的创建是领域层的职责，但这项任务并不一定属于那些用于表示模型的对象，他们没有对应模型中的事物，但又确实承担了领域层的职责。应该将创建复杂对象和聚合的职责转移给单独的对象，这个对象本身可能没有承担领域模型中的职责，但它仍然是领域设计的一部分。提供一个封装所有复杂装配操作的接口，而且这个接口不需要客户引用要被实例化的对象的具体类。在创建聚合时要把它作为一个整体，并确保它满足固定规则。</p>
+<h5 id="Repositories（仓储）"><a href="#Repositories（仓储）" class="headerlink" title="Repositories（仓储）"></a>Repositories（仓储）</h5><p>日常开发中，我们经常会用到到Repositories，作为一个Dao，它主要负责操作DO对象，与底层数据库进行交互。但是在DDD中，Repositories不等于Dao，Repository对应的是对Entity对象读取储存的抽象，在接口层面做统一，不关注底层实现。Repository的具体实现类通过调用Dao来实现各种操作，通过Builder/Factory对象实现DO到Entity之间的转化。DDD中数据资源的访问与维护只能由Repositories来操作。</p>
+<h5 id="Domain-Service-领域服务"><a href="#Domain-Service-领域服务" class="headerlink" title="Domain Service (领域服务)"></a>Domain Service (领域服务)</h5><p>当某个行为不属于任何一个领域时，那么就需要领域服务来涉及多个领域对象的操作。&lt;阿里技术专家详解DDD系列&gt;&gt;中就举了一个玩家打怪兽的例子，如果玩家有攻击怪兽这么一个行为，映射到我们领域模型中，那么是在玩家领域中攻击了怪兽，还是怪兽领域中被玩家攻击，此时在代码层面，攻击野兽这个行为，无论放到哪个领域中都不太合理，因此需要一个领域服务来专门处理这种跨领域的行为。</p>
 <h5 id="Domain-Primitive（基础类型）"><a href="#Domain-Primitive（基础类型）" class="headerlink" title="Domain Primitive（基础类型）"></a>Domain Primitive（基础类型）</h5><blockquote>
 <p>Domain Primitive 是一个在特定领域里，拥有精准定义的、可自我验证的、拥有行为的 Value Object。</p>
 </blockquote>
@@ -212,16 +223,20 @@
 <li>Double 或 BigDecimal：一般用到的 Double 或 BigDecimal 都是有业务含义的，比如 Temperature、Money、Amount、ExchangeRate、Rating 等</li>
 <li>复杂的数据结构：比如 Map&lt;String, List<Integer>&gt; 等，尽量能把 Map 的所有操作包装掉，仅暴露必要行为</li>
 </ul>
-<h2 id="DDD分层架构"><a href="#DDD分层架构" class="headerlink" title="DDD分层架构"></a>DDD分层架构</h2><p>前面战术设计主要介绍了，DDD中的一些基本概念。现在我们就来讲讲DDD在我们工作中如何具体的实施，不同于传统的三层模型，Controller、Service、Dao不同，DDD的分层更加复杂，从下图可以清晰看出架构中的层级关系。</p>
+<h2 id="DDD分层架构"><a href="#DDD分层架构" class="headerlink" title="DDD分层架构"></a>DDD分层架构</h2><p>前面战术设计主要介绍了，DDD中的一些基本概念。现在我们就来讲讲DDD在我们工作中如何具体的实施，不同于传统的三层模型，Controller、Service、Dao不同，DDD的分层更加复杂，从下图可以看出架构中的层级关系。</p>
 <p><img src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/ddd%E5%88%86%E5%B1%82.jpeg" alt=""></p>
-<h3 id="Interaface（接口层）"><a href="#Interaface（接口层）" class="headerlink" title="Interaface（接口层）"></a>Interaface（接口层）</h3><p>接口层处于架构的最上层，提供系统对外暴露的接口。主要功能是接收外部的调用，调用底层的服务，然后将底层服务返回的数据返回给调用者。这一层只包含对外的DTO对象的声明，接口声明，DTO对象转换，日志打印等。不能包含因为逻辑。</p>
+<h3 id="Interaface（接口层）"><a href="#Interaface（接口层）" class="headerlink" title="Interaface（接口层）"></a>Interaface（接口层）</h3><p>接口层处于架构的最上层，提供系统对外暴露的接口。主要功能是接收外部的请求，调用底层的服务，然后将底层服务返回的数据返回给调用者。这一层只包含对外的DTO对象的声明，接口声明，DTO对象转换，日志打印等。不能包含因为逻辑。</p>
 <h3 id="Application（应用层）"><a href="#Application（应用层）" class="headerlink" title="Application（应用层）"></a>Application（应用层）</h3><p>应用层描述了整个系统的全部功能，它不实现业务逻辑，只对底层的领域对象进行编排以实现用例。一般在这一层里使用Repositories（仓储）对数据进行读取和保存。事务处理一般也在这一层。这一层主要包括Service，用来调用Domain层的对象完成一个业务。访问第三方的远程调用一般也是在这一层。</p>
 <h3 id="Domain（领域层）"><a href="#Domain（领域层）" class="headerlink" title="Domain（领域层）"></a>Domain（领域层）</h3><p>Domain模块是<strong>核心业务逻辑的集中地</strong>，包含有状态的实体、聚合、领域服务Domain Service、以及各种外部依赖的接口类（如Repository、ACL、中间件等。领域层出现的pojo对象只有领域对象，不能出现别的DTO，DO，VO这些对象；</p>
 <h3 id="Infrastructure（基础设施层）"><a href="#Infrastructure（基础设施层）" class="headerlink" title="Infrastructure（基础设施层）"></a>Infrastructure（基础设施层）</h3><p>负责所有的对外的交互。比如数据库访问层实现，RPC接口，MQ等。</p>
-<h2 id="DDD实战"><a href="#DDD实战" class="headerlink" title="DDD实战"></a>DDD实战</h2><p>未完待续。。。</p>
+<h2 id="服务视图"><a href="#服务视图" class="headerlink" title="服务视图"></a>服务视图</h2><h2 id="DDD实战"><a href="#DDD实战" class="headerlink" title="DDD实战"></a>DDD实战</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>接下来我们将从实际的业务出发</p>
+<p>未完待续。。。</p>
 <p>参考文档</p>
 <p><a href="https://ld246.com/article/1574177012526">https://ld246.com/article/1574177012526</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/366395817">https://zhuanlan.zhihu.com/p/366395817</a></p>
+<p><a href="https://insights.thoughtworks.cn/ddd-aggregation-bounded-context/">https://insights.thoughtworks.cn/ddd-aggregation-bounded-context/</a></p>
 
         </div>
         
@@ -286,6 +301,13 @@
 
 <div class="card card-transparent">
     <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2021/07/27/DataWorks/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">DataWorks初探</span>
+            </a>
+        </div>
         
         
         <div class="level-end">
@@ -368,7 +390,7 @@
                     </p>
                     <a href="/archives">
                         <p class="title has-text-weight-normal">
-                            29
+                            30
                         </p>
                     </a>
                 </div>
@@ -380,7 +402,7 @@
                     </p>
                     <a href="/categories">
                         <p class="title has-text-weight-normal">
-                            14
+                            16
                         </p>
                     </a>
                 </div>
@@ -392,7 +414,7 @@
                     </p>
                     <a href="/tags">
                         <p class="title has-text-weight-normal">
-                            20
+                            22
                         </p>
                     </a>
                 </div>
@@ -452,16 +474,24 @@
         <span class="has-mr-6">3.1</span>
         <span>战略设计</span>
         </a><ul class="menu-list"><li>
-        <a class="is-flex" href="#Bounded-Context（限界上下文）">
+        <a class="is-flex" href="#领域">
         <span class="has-mr-6">3.1.1</span>
+        <span>领域</span>
+        </a></li><li>
+        <a class="is-flex" href="#子域">
+        <span class="has-mr-6">3.1.2</span>
+        <span>子域</span>
+        </a></li><li>
+        <a class="is-flex" href="#Bounded-Context（限界上下文）">
+        <span class="has-mr-6">3.1.3</span>
         <span>Bounded Context（限界上下文）</span>
         </a></li><li>
         <a class="is-flex" href="#Context-Map（上下文映射）">
-        <span class="has-mr-6">3.1.2</span>
+        <span class="has-mr-6">3.1.4</span>
         <span>Context Map（上下文映射）</span>
         </a></li><li>
         <a class="is-flex" href="#Ubiquitous-Lanuage（上下文通用语言）">
-        <span class="has-mr-6">3.1.3</span>
+        <span class="has-mr-6">3.1.5</span>
         <span>Ubiquitous Lanuage（上下文通用语言）</span>
         </a></li></ul></li><li>
         <a class="is-flex" href="#战术设计">
@@ -492,8 +522,12 @@
         <span class="has-mr-6">4.4</span>
         <span>Infrastructure（基础设施层）</span>
         </a></li></ul></li><li>
-        <a class="is-flex" href="#DDD实战">
+        <a class="is-flex" href="#服务视图">
         <span class="has-mr-6">5</span>
+        <span>服务视图</span>
+        </a></li><li>
+        <a class="is-flex" href="#DDD实战">
+        <span class="has-mr-6">6</span>
         <span>DDD实战</span>
         </a></li></ul>
             </div>
@@ -554,6 +588,22 @@
         <a class="level is-marginless" href="/categories/jvm/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">
             <span class="level-start">
                 <span class="level-item">垃圾回收</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/">
+            <span class="level-start">
+                <span class="level-item">大数据</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/ETL/">
+            <span class="level-start">
+                <span class="level-item">ETL</span>
             </span>
             <span class="level-end">
                 <span class="level-item tag">1</span>
@@ -657,7 +707,7 @@
         <h3 class="menu-label">
             标签云
         </h3>
-        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 13.33px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
+        <a href="/tags/DDD/" style="font-size: 10px;">DDD</a> <a href="/tags/ETL/" style="font-size: 10px;">ETL</a> <a href="/tags/class/" style="font-size: 10px;">class</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/juc/" style="font-size: 13.33px;">juc</a> <a href="/tags/jvm/" style="font-size: 13.33px;">jvm</a> <a href="/tags/loc/" style="font-size: 10px;">loc</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/spring/" style="font-size: 10px;">spring</a> <a href="/tags/%E5%86%85%E5%AD%98/" style="font-size: 10px;">内存</a> <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" style="font-size: 10px;">大数据</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 13.33px;">工具</a> <a href="/tags/%E5%B9%B6%E5%8F%91/" style="font-size: 18.33px;">并发</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">数据库</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%BA%90%E7%A0%81/" style="font-size: 20px;">源码</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 11.67px;">线程池</a> <a href="/tags/%E9%94%81/" style="font-size: 13.33px;">锁</a> <a href="/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/" style="font-size: 16.67px;">阻塞队列</a> <a href="/tags/%E9%9B%86%E5%90%88/" style="font-size: 15px;">集合</a>
     </div>
 </div>
     
@@ -666,6 +716,25 @@
         <h3 class="menu-label">
             最新文章
         </h3>
+        
+        <article class="media">
+            
+            <a href="/2021/07/27/DataWorks/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-17.jpg" alt="DataWorks初探">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2021-07-27T13:32:14.000Z">2021-07-27</time></div>
+                    <a href="/2021/07/27/DataWorks/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DataWorks初探</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a> / <a class="has-link-grey -link" href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/ETL/">ETL</a>
+                    </p>
+                </div>
+            </div>
+        </article>
         
         <article class="media">
             
@@ -743,25 +812,6 @@
             </div>
         </article>
         
-        <article class="media">
-            
-            <a href="/2020/04/28/Spring-loc-1/" class="media-left">
-                <p class="image is-64x64">
-                    <img class="thumbnail" src="http://yingu-blog.oss-cn-hangzhou.aliyuncs.com/cs/cs-20.jpg" alt="【Springloc流程解析】--1. Springloc的基本组件和流程">
-                </p>
-            </a>
-            
-            <div class="media-content">
-                <div class="content">
-                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-04-28T11:22:34.000Z">2020-04-28</time></div>
-                    <a href="/2020/04/28/Spring-loc-1/" class="title has-link-black-ter is-size-6 has-text-weight-normal">【Springloc流程解析】--1. Springloc的基本组件和流程</a>
-                    <p class="is-size-7 is-uppercase">
-                        <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/">源码</a> / <a class="has-link-grey -link" href="/categories/%E6%BA%90%E7%A0%81/spring/">spring</a>
-                    </p>
-                </div>
-            </div>
-        </article>
-        
     </div>
 </div>
     
@@ -779,7 +829,7 @@
                     <span class="level-item">七月 2021</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">1</span>
+                    <span class="level-item tag">2</span>
                 </span>
             </a>
         </li>
@@ -915,6 +965,13 @@
                 </div>
                 
                 <div class="control">
+                    <a class="tags has-addons" href="/tags/ETL/">
+                        <span class="tag">ETL</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
                     <a class="tags has-addons" href="/tags/class/">
                         <span class="tag">class</span>
                         <span class="tag is-grey">1</span>
@@ -980,6 +1037,13 @@
                 <div class="control">
                     <a class="tags has-addons" href="/tags/%E5%86%85%E5%AD%98/">
                         <span class="tag">内存</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/">
+                        <span class="tag">大数据</span>
                         <span class="tag is-grey">1</span>
                     </a>
                 </div>
